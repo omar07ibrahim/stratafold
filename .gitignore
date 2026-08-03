@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.cache/
+.pytest_cache/
+.ruff_cache/
+target/
+build/
+dist/
+*.egg-info/
+.DS_Store
+.env
+.env.*
+!.env.example
+evidence/generated/
+artifacts/
+
+# Host-only orchestration inputs are not part of the public project.
+.codex/
+INITIAL_PROMPT.txt

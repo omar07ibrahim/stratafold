@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "allowed_evidence_tags": [
+    "measured",
+    "source-reproduced",
+    "derived",
+    "projected",
+    "unverified"
+  ],
+  "claims": [
+    {
+      "id": "SF-C0001",
+      "statement": "DeepSeek-V4-Flash-0731 is a natively mixed-precision release with FP4 experts and an FP8 E4M3 configuration on other paths.",
+      "tag": "unverified",
+      "scope": "bootstrap target fact pending the M1 pinned official snapshot",
+      "evidence": [],
+      "reproduce": null
+    },
+    {
+      "id": "SF-C0002",
+      "statement": "The committed M0 repository tree contains no target weight blob or recognized weight-file extension.",
+      "tag": "measured",
+      "scope": "files inspected by the dependency-free repository policy check",
+      "evidence": ["evidence/raw/m0_gate.json"],
+      "reproduce": "make evidence-m0"
+    },
+    {
+      "id": "SF-C0003",
+      "statement": "A planned .safetensors request is rejected before the injected network opener is called.",
+      "tag": "measured",
+      "scope": "standard-library request-policy test",
+      "evidence": ["evidence/raw/m0_gate.json", "tests/test_doctor.py"],
+      "reproduce": "make evidence-m0"
+    }
+  ]
+}

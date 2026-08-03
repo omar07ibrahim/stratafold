@@ -1,0 +1,49 @@
+{
+  "captured_at": "2026-08-03T08:15:44.673719+00:00",
+  "command": "make evidence-m0",
+  "evidence_tag": "measured",
+  "forbidden_request": {
+    "kind": "simulated-safetensors",
+    "opener_calls": 0,
+    "payload_bytes_read": 0,
+    "reason": "model weight objects are forbidden on this host",
+    "rejected": true,
+    "url_logged": false
+  },
+  "host": {
+    "cpu_count": 4,
+    "memory_available_bytes": 11450736640,
+    "platform": "Linux-6.17.0-1019-aws-x86_64-with-glibc2.39",
+    "python": "3.12.3"
+  },
+  "ok": true,
+  "repository_checks": {
+    "errors": [],
+    "ok": true
+  },
+  "resource_doctor": {
+    "cache_bytes": 0,
+    "cpu_count": 4,
+    "filesystem_path": "/",
+    "free_bytes": 2526253056,
+    "limits": {
+      "max_cache_bytes": 134217728,
+      "max_remote_aggregate_bytes": 134217728,
+      "max_remote_object_bytes": 33554432,
+      "max_workspace_bytes": 786432000,
+      "min_free_bytes": 2147483648
+    },
+    "memory_available_bytes": 11450736640,
+    "ok": true,
+    "status": "pass",
+    "violations": [],
+    "workspace_bytes": 243260
+  },
+  "schema_version": 1,
+  "target_weights": {
+    "independent_hostwide_network_audit": false,
+    "repository_weight_files_detected": 0,
+    "workflow_declares_downloaded": false,
+    "workflow_declares_executed": false
+  }
+}

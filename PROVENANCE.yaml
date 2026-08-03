@@ -1,0 +1,139 @@
+schema_version: 1
+project:
+  name: StrataFold
+  owner: Omar Ibrahim
+  repository: https://github.com/omar07ibrahim/stratafold
+  implementation_origin: clean-room
+  code_license: Apache-2.0
+  documentation_license: CC-BY-4.0
+  source_reuse_default: prohibited
+boundary:
+  allowed:
+    - primary papers and official specifications as behavioral references
+    - bounded official metadata snapshots with hashes and retrieval dates
+    - independently generated synthetic weights and calibration traces
+  prohibited:
+    - target checkpoint weight downloads on this host
+    - source-code copying or translation from research repositories
+    - copying or paraphrasing kimi-k3-in-c code, prose, layouts, fixtures, assets, branding, or claims
+    - representing dtype changes as structural compression
+sources:
+  - id: deepseek-v4-flash-0731
+    kind: official-model-metadata
+    url: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+    revision: 7872f01b1d1fe23eabc4c98b48bffcef5a386062
+    status: bootstrap-unverified
+    reuse: metadata-only
+  - id: deepseek-v4-report
+    kind: primary-paper
+    url: https://arxiv.org/abs/2606.19348
+    version: arXiv:2606.19348v1
+    publication_status: preprint-technical-report
+    status: source-verified
+    reuse: citation-only
+  - id: reap
+    kind: primary-paper-and-official-code
+    url: https://arxiv.org/abs/2510.13999v3
+    publication_status: ICLR-2026-poster
+    code_url: https://github.com/CerebrasResearch/reap
+    code_license: Apache-2.0
+    reuse: citation-only
+  - id: ream
+    kind: primary-paper-and-official-code
+    url: https://arxiv.org/abs/2604.04356v1
+    publication_status: preprint
+    code_url: https://github.com/SamsungSAILMontreal/ream
+    code_license: MIT
+    reuse: citation-only
+  - id: evoesap
+    kind: primary-paper-and-official-code
+    url: https://arxiv.org/abs/2603.06003v2
+    publication_status: preprint
+    code_url: https://github.com/ZongfangLiu/EvoESAP
+    code_license: Apache-2.0
+    reuse: citation-only
+  - id: grape
+    kind: primary-paper
+    url: https://arxiv.org/abs/2604.06542v1
+    publication_status: preprint
+    code_license: unverified-no-official-code-found
+    reuse: citation-only
+  - id: mobe
+    kind: primary-paper-and-official-code
+    url: https://openreview.net/forum?id=8RV6H50OSf
+    publication_status: ICLR-2026-poster
+    code_url: https://github.com/inclusionAI/MoBE
+    code_license: no-standard-license-found
+    reuse: none
+  - id: d2-moe
+    kind: primary-paper-and-official-code
+    url: https://openreview.net/forum?id=ziezViPoN1
+    publication_status: ICML-2025-poster
+    code_url: https://github.com/lliai/D2MoE
+    code_license: Apache-2.0
+    reuse: citation-only
+  - id: td-moe
+    kind: primary-paper-and-official-code
+    url: https://openreview.net/forum?id=D9cnZNZfxX
+    publication_status: ICLR-2026-poster
+    code_url: https://github.com/ust-xu/TD-MoE
+    code_license: MIT
+    reuse: citation-only
+  - id: sub-moe
+    kind: primary-paper
+    url: https://ojs.aaai.org/index.php/AAAI/article/view/39464
+    publication_status: AAAI-2026
+    code_license: unavailable-official-url-not-found
+    reuse: citation-only
+  - id: rfid-moe
+    kind: primary-paper
+    url: https://arxiv.org/abs/2602.09316v2
+    publication_status: preprint
+    code_license: unverified-no-official-code-found
+    reuse: citation-only
+  - id: moe-i2
+    kind: primary-paper-and-official-code
+    url: https://aclanthology.org/2024.findings-emnlp.612/
+    publication_status: findings-emnlp-2024
+    code_url: https://github.com/xiaochengsky/MoE-I2
+    code_license: no-standard-license-found
+    reuse: none
+  - id: lillama
+    kind: primary-paper-and-official-code
+    url: https://aclanthology.org/2025.naacl-long.291/
+    publication_status: NAACL-2025-long
+    code_url: https://github.com/yaya-sy/lillama
+    code_license: no-standard-license-found
+    reuse: none
+  - id: moe-to-dense
+    kind: primary-paper-and-official-code
+    url: https://arxiv.org/abs/2605.28207v2
+    publication_status: preprint
+    code_url: https://github.com/krafton-ai/moe-to-dense
+    code_license: Apache-2.0
+    reuse: citation-only
+  - id: flashmemory-deepseek-v4
+    kind: primary-paper-and-official-code
+    url: https://arxiv.org/abs/2606.09079v3
+    publication_status: preprint-technical-report
+    code_url: https://github.com/libertywing/FlashMemory-Deepseek-V4
+    code_license: MIT
+    reuse: citation-only
+  - id: zipnn
+    kind: primary-paper-and-official-code
+    url: https://doi.org/10.1109/CLOUD67622.2025.00028
+    publication_status: IEEE-CLOUD-2025
+    code_url: https://github.com/zipnn/zipnn
+    code_license: ambiguous-noassertion
+    reuse: none
+  - id: kimi-k3-in-c
+    kind: product-prior-art
+    url: https://github.com/FareedKhan-dev/kimi-k3-in-c
+    revision: 85ab2cd901aa81b70caac7711f06864d594b8ff3
+    retrieved_at: "2026-08-03"
+    license: Apache-2.0
+    status: verified-read-only
+    reuse: none
+generated_data:
+  policy: Synthetic weights are locally generated from documented seeds and are not derived from DeepSeek weights.
+  first_fixture: pending-M2
