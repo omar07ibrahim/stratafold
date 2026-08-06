@@ -32,7 +32,7 @@ REQUIRED_PATHS = {
     "docs/THREAT_MODEL.md",
     "docs/adr/0001-clean-room.md",
 }
-BINARY_WEIGHT_SUFFIXES = {".safetensors", ".bin", ".pt", ".pth", ".ckpt", ".gguf"}
+BINARY_WEIGHT_SUFFIXES = {".safetensors", ".bin", ".pt", ".pth", ".ckpt", ".gguf", ".onnx"}
 SECRET_PATTERNS = {
     "private-key": re.compile(r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----"),
     "github-token": re.compile(r"\bgh[opsu]_[A-Za-z0-9]{20,}\b"),

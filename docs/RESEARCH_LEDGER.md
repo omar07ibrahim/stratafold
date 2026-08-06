@@ -2,7 +2,7 @@
 
 - Reviewed: 2026-08-03
 - Source policy: primary papers, official proceedings records, and official repositories only
-- Reproduction state: literature claims are `source-reproduced`; no paper benchmark was reproduced here
+- Review state: primary sources were checked and cited; no paper benchmark was reproduced here
 - Code reuse: none
 
 The production comparison order is equal-dtype dense storage, independent per-expert SVD, uniform pruning, REAP-style pruning, REAM-style merging, then Route-Stratified Factorization. Other ideas enter only when identical source tensors, calibration, held-out data, native/equal dtype, and exact serialized-byte budgets remain fair.

@@ -10,6 +10,6 @@ StrataFold does not fork, clone, rename, translate, port, lightly paraphrase, or
 
 ## Research-code boundary
 
-Official research repositories are used to verify paper identity and license status only. The default is no source-code reuse. REAP is expected to be Apache-2.0, REAM and TD-MoE MIT, and D2-MoE Apache-2.0; these remain ledger facts to verify before M0 closes. MoBE code is treated as unavailable for reuse unless a standard license is verified.
+Official research repositories are used to verify paper identity and license status only. The default is no source-code reuse. At the recorded 2026-08-03 review snapshot, repository metadata identified REAP and D2-MoE as Apache-2.0 and REAM and TD-MoE as MIT. Reuse remains citation-only. MoBE code remains unavailable for reuse because no standard license grant was found.
 
 Route-Stratified Factorization is StrataFold's original falsifiable hypothesis: functional output sketches and routing/co-routing constraints define compatible strata; shared factors and globally allocated ranks reduce bytes; output-sensitive sparse residuals repair selected errors; and the planner abstains when a held-out quality constraint is unsupported. It is not described as SOTA before fair measured evidence.
