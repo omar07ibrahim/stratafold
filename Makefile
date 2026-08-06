@@ -1,8 +1,9 @@
 PYTHON ?= python3
 PYTHONPATH := $(CURDIR)/src
+M1_EVIDENCE_DIR ?= evidence/raw
 export PYTHONPATH
 
-.PHONY: doctor check evidence-m0 test demo report clean
+.PHONY: doctor check evidence-m0 evidence-m1 evidence-m1-check test demo report clean
 
 doctor:
 	$(PYTHON) -m stratafold doctor --workspace "$(CURDIR)"
@@ -12,6 +13,12 @@ check: doctor
 
 evidence-m0: doctor
 	$(PYTHON) scripts/verify_m0.py --output evidence/raw/m0_gate.json
+
+evidence-m1: doctor
+	$(PYTHON) scripts/capture_m1.py --output-dir "$(M1_EVIDENCE_DIR)"
+
+evidence-m1-check: doctor
+	$(PYTHON) scripts/capture_m1.py --output-dir "$(M1_EVIDENCE_DIR)" --check
 
 test: doctor
 	$(PYTHON) -m unittest discover -s tests -v

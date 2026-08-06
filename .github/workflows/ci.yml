@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Resource preflight
@@ -27,3 +27,39 @@ jobs:
         run: make test
       - name: Patch hygiene
         run: git diff --check
+      - name: Require clean checkout before evidence capture
+        run: |
+          git diff --exit-code -- .
+          test -z "$(git status --short --untracked-files=all)"
+      - name: Generate and replay M1 evidence
+        run: |
+          make M1_EVIDENCE_DIR="$RUNNER_TEMP/m1-evidence" evidence-m1
+          make M1_EVIDENCE_DIR="$RUNNER_TEMP/m1-evidence" evidence-m1-check
+      - name: Verify exact M1 artifact inventory
+        run: |
+          actual="$(
+            find "$RUNNER_TEMP/m1-evidence" \
+              -mindepth 1 -maxdepth 1 -type f -printf '%f\n' \
+              | LC_ALL=C sort
+          )"
+          expected="$(
+            printf '%s\n' \
+              m1_target_genome.json \
+              m1_target_genome.txt
+          )"
+          test "$actual" = "$expected"
+          test -z "$(
+            find "$RUNNER_TEMP/m1-evidence" \
+              -mindepth 1 -maxdepth 1 ! -type f -print -quit
+          )"
+      - name: Upload reviewed M1 evidence surfaces
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: m1-target-genome-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/m1-evidence/m1_target_genome.json
+            ${{ runner.temp }}/m1-evidence/m1_target_genome.txt
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+          include-hidden-files: false
