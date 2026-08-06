@@ -300,7 +300,7 @@ class PinnedIdentityMutationTests(unittest.TestCase):
             config["attention_dropout"] = 0.125
             write_json(root, "config.json", config)
             with self.assertRaisesRegex(
-                SnapshotValidationError, "reviewed manifest SHA-256 identity drifted"
+                SnapshotValidationError, "reviewed manifest byte identity drifted"
             ):
                 inspect_snapshot(root)
 
@@ -427,5 +427,6 @@ class ManifestBoundaryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
