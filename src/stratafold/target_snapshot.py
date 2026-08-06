@@ -11,7 +11,7 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
-from typing import Iterable
+from typing import Final, Iterable
 
 
 TARGET_REPOSITORY = "deepseek-ai/DeepSeek-V4-Flash-0731"
@@ -50,6 +50,52 @@ EXPECTED_URLS = {
 }
 MAX_FILE_BYTES = 32 * 1024**2
 MAX_SNAPSHOT_BYTES = 128 * 1024**2
+
+REVIEWED_FILE_IDENTITIES: Final[
+    dict[str, tuple[int, str, str | None]]
+] = {
+    "config.json": (
+        1888,
+        "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
+        "5f2da9100036b39e26ebe5ab493c5e8d4004d8a1",
+    ),
+    "model.safetensors.index.json": (
+        5_602_871,
+        "98efab455cf08dfbbbaaba6f570e1bf10bf927d2b4c3c453a59c2f6f0e3be92b",
+        "c3b10d45a829545fbf0d9d2880a1aa0b9ab3b43a",
+    ),
+    "LICENSE.target.txt": (
+        1084,
+        "f2c6c602815669d292889e5be8c802f2ed950653b77999b1584e8e6aed25d040",
+        "d62e3bef9f054f21b7fc616365850fbf879a99ff",
+    ),
+    "repository.json": (
+        22_284,
+        "6cacae22067d225351b46d30b3b4335db18b8941e342ac24ab945d81ebef4800",
+        None,
+    ),
+}
+REPOSITORY_PATHS: Final[dict[str, str]] = {
+    "config.json": "config.json",
+    "model.safetensors.index.json": "model.safetensors.index.json",
+    "LICENSE.target.txt": "LICENSE",
+}
+EXPECTED_REPOSITORY_FILE_COUNT: Final = 74
+EXPECTED_TENSOR_COUNT: Final = 72_317
+EXPECTED_TENSOR_PAYLOAD_BYTES: Final = 166_878_536_440
+EXPECTED_ARTIFACT_BYTES: Final = {
+    "weight_shards": 166_886_535_336,
+    "non_weight_files": 12_125_738,
+    "all_repository_files": 166_898_661_074,
+}
+EXPECTED_PARAMETER_COUNTS: Final = {
+    "BF16": 1_483_567_488,
+    "I64": 2_327_040,
+    "F32": 37_741_630,
+    "F8_E4M3": 6_304_038_912,
+    "I8": 296_352_743_424,
+    "total": 304_180_418_494,
+}
 
 _HEX40 = re.compile(r"^[0-9a-f]{40}$")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -302,7 +348,13 @@ def _validate_manifest(
 
 def _load_snapshot(
     snapshot_dir: Path,
-) -> tuple[dict[str, bytes], dict[str, object], int, int]:
+) -> tuple[
+    dict[str, bytes],
+    dict[str, object],
+    dict[str, dict[str, object]],
+    int,
+    int,
+]:
     root = Path(snapshot_dir)
     if not root.is_absolute():
         root = Path.cwd() / root
@@ -352,7 +404,7 @@ def _load_snapshot(
             )
         verified[path] = data
         listed_bytes += len(data)
-    return verified, safety, listed_bytes, len(manifest_bytes)
+    return verified, safety, entries, listed_bytes, len(manifest_bytes)
 
 
 def _config_int(config: dict[str, object], key: str, expected: int) -> int:
@@ -466,7 +518,7 @@ def _validate_config(payload: object) -> tuple[dict[str, object], dict[str, obje
         },
         {
             "expert_dtype": expert_dtype,
-            "other_paths_dtype": torch_dtype,
+            "declared_torch_dtype": torch_dtype,
             "quantization_config": {
                 **expected_quant,
                 "weight_block_size": block,
@@ -511,7 +563,7 @@ def _shards(names: set[str], label: str) -> int:
 
 def _validate_repository(
     payload: object,
-) -> tuple[dict[str, int], dict[str, int], set[str]]:
+) -> tuple[dict[str, int], dict[str, int], set[str], dict[str, str]]:
     repository = _obj(payload, "repository.json")
     _keys(
         repository,
@@ -540,11 +592,18 @@ def _validate_repository(
     if _str(source["url"], "repository.source.url") != EXPECTED_URLS["repository.json"]:
         raise SnapshotValidationError("repository source URL does not match")
 
+    remote_files = _arr(repository["files"], "repository.files")
+    if len(remote_files) != EXPECTED_REPOSITORY_FILE_COUNT:
+        raise SnapshotValidationError(
+            "repository file count drifted; "
+            f"expected {EXPECTED_REPOSITORY_FILE_COUNT}, observed {len(remote_files)}"
+        )
     seen: set[str] = set()
     weight_names: set[str] = set()
+    repository_blob_ids: dict[str, str] = {}
     all_sum = 0
     weight_sum = 0
-    for index, raw in enumerate(_arr(repository["files"], "repository.files")):
+    for index, raw in enumerate(remote_files):
         label = f"repository.files[{index}]"
         item = _obj(raw, label)
         _keys(item, {"blob_id", "bytes", "path", "storage"}, label)
@@ -552,7 +611,9 @@ def _validate_repository(
         if path in seen:
             raise SnapshotValidationError(f"repository contains duplicate path: {path}")
         seen.add(path)
-        _digest(item["blob_id"], f"{label}.blob_id", _HEX40)
+        blob_id = _digest(item["blob_id"], f"{label}.blob_id", _HEX40)
+        if path in set(REPOSITORY_PATHS.values()):
+            repository_blob_ids[path] = blob_id
         size = _int(item["bytes"], f"{label}.bytes")
         storage = _obj(item["storage"], f"{label}.storage")
         kind = _str(storage.get("kind"), f"{label}.storage.kind")
@@ -598,6 +659,11 @@ def _validate_repository(
         raise SnapshotValidationError("repository non-weight byte ledger does not add up")
     if ledger["weight_shards"] + ledger["non_weight_files"] != ledger["all_repository_files"]:
         raise SnapshotValidationError("repository byte ledgers are inconsistent")
+    if ledger != EXPECTED_ARTIFACT_BYTES:
+        raise SnapshotValidationError(
+            "repository byte ledger drifted; "
+            f"expected {EXPECTED_ARTIFACT_BYTES}, observed {ledger}"
+        )
 
     classes = _obj(
         repository["safetensors_parameter_classes"],
@@ -623,7 +689,12 @@ def _validate_repository(
     if sum(counts.values()) != total:
         raise SnapshotValidationError("repository parameter ledger does not add up")
     counts["total"] = total
-    return ledger, counts, weight_names
+    if counts != EXPECTED_PARAMETER_COUNTS:
+        raise SnapshotValidationError(
+            "repository parameter classes drifted; "
+            f"expected {EXPECTED_PARAMETER_COUNTS}, observed {counts}"
+        )
+    return ledger, counts, weight_names, repository_blob_ids
 
 
 def _slot_census(
@@ -745,6 +816,11 @@ def _validate_index(
     metadata = _obj(index["metadata"], "index.metadata")
     _keys(metadata, {"total_size"}, "index.metadata")
     payload_bytes = _int(metadata["total_size"], "index.metadata.total_size")
+    if payload_bytes != EXPECTED_TENSOR_PAYLOAD_BYTES:
+        raise SnapshotValidationError(
+            "index tensor payload bytes drifted; "
+            f"expected {EXPECTED_TENSOR_PAYLOAD_BYTES}, observed {payload_bytes}"
+        )
     if payload_bytes > repository_weight_bytes:
         raise SnapshotValidationError("tensor payload exceeds weight-shard bytes")
 
@@ -787,17 +863,89 @@ def _validate_index(
         _arr(topology["dspark_target_layer_ids"], "topology.dspark_target_layer_ids")
     )
     census = _expert_census(weight_map, layers, experts, attachments)
+    if len(weight_map) != EXPECTED_TENSOR_COUNT:
+        raise SnapshotValidationError(
+            "index tensor count drifted; "
+            f"expected {EXPECTED_TENSOR_COUNT}, observed {len(weight_map)}"
+        )
     return len(weight_map), len(index_shards), denominator, payload_bytes, census
+
+
+def _git_blob_id(data: bytes) -> str:
+    digest = hashlib.sha1(usedforsecurity=False)
+    digest.update(f"blob {len(data)}\0".encode("ascii"))
+    digest.update(data)
+    return digest.hexdigest()
+
+
+def _validate_reviewed_identities(
+    files: dict[str, bytes],
+    entries: dict[str, dict[str, object]],
+    repository_blob_ids: dict[str, str],
+) -> None:
+    for path in ("config.json", "model.safetensors.index.json", "LICENSE.target.txt"):
+        expected_bytes, expected_sha, expected_blob = REVIEWED_FILE_IDENTITIES[path]
+        entry = entries[path]
+        if _int(entry["bytes"], f"manifest[{path}].bytes") != expected_bytes:
+            raise SnapshotValidationError(
+                f"{path}: reviewed manifest byte identity drifted"
+            )
+        if _str(entry["sha256"], f"manifest[{path}].sha256") != expected_sha:
+            raise SnapshotValidationError(
+                f"{path}: reviewed manifest SHA-256 identity drifted"
+            )
+        if _str(entry["upstream_blob_id"], f"manifest[{path}].upstream_blob_id") != expected_blob:
+            raise SnapshotValidationError(
+                f"{path}: reviewed upstream blob identity drifted"
+            )
+        data = files[path]
+        if len(data) != expected_bytes or hashlib.sha256(data).hexdigest() != expected_sha:
+            raise SnapshotValidationError(
+                f"{path}: reviewed official content identity drifted"
+            )
+        if _git_blob_id(data) != expected_blob:
+            raise SnapshotValidationError(
+                f"{path}: computed Git blob identity does not match the official blob"
+            )
+        repository_path = REPOSITORY_PATHS[path]
+        if repository_blob_ids.get(repository_path) != expected_blob:
+            raise SnapshotValidationError(
+                f"{path}: repository.json blob cross-link drifted"
+            )
+
+    repository_bytes, repository_sha, _ = REVIEWED_FILE_IDENTITIES["repository.json"]
+    repository_entry = entries["repository.json"]
+    if _int(repository_entry["bytes"], "manifest[repository.json].bytes") != repository_bytes:
+        raise SnapshotValidationError(
+            "repository.json: reviewed manifest byte identity drifted"
+        )
+    if _str(repository_entry["sha256"], "manifest[repository.json].sha256") != repository_sha:
+        raise SnapshotValidationError(
+            "repository.json: reviewed manifest SHA-256 identity drifted"
+        )
+    repository_data = files["repository.json"]
+    if (
+        len(repository_data) != repository_bytes
+        or hashlib.sha256(repository_data).hexdigest() != repository_sha
+    ):
+        raise SnapshotValidationError(
+            "repository.json: reviewed official content identity drifted"
+        )
 
 
 def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]:
     """Validate and summarize the snapshot without network or remote code."""
 
-    files, safety, listed_bytes, manifest_bytes = _load_snapshot(snapshot_dir)
+    files, safety, entries, listed_bytes, manifest_bytes = _load_snapshot(snapshot_dir)
     topology, native = _validate_config(
         loads_json_strict(files["config.json"], label="config.json")
     )
-    artifacts, parameters, repository_shards = _validate_repository(
+    (
+        artifacts,
+        parameters,
+        repository_shards,
+        repository_blob_ids,
+    ) = _validate_repository(
         loads_json_strict(files["repository.json"], label="repository.json")
     )
     tensor_count, shard_count, denominator, payload_bytes, census = _validate_index(
@@ -809,6 +957,7 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
         repository_shards,
         artifacts["weight_shards"],
     )
+    _validate_reviewed_identities(files, entries, repository_blob_ids)
     return {
         "schema_version": 1,
         "status": "validated",
@@ -879,4 +1028,6 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
             },
         },
     }
+
+
 

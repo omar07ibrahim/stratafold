@@ -80,7 +80,8 @@ class PinnedSnapshotTests(unittest.TestCase):
 
         native = report["native_representation"]
         self.assertEqual(native["expert_dtype"], "fp4")
-        self.assertEqual(native["other_paths_dtype"], "bfloat16")
+        self.assertEqual(native["declared_torch_dtype"], "bfloat16")
+        self.assertNotIn("other_paths_dtype", native)
         self.assertEqual(native["quantization_config"]["quant_method"], "fp8")
         self.assertEqual(native["quantization_config"]["fmt"], "e4m3")
 
@@ -260,6 +261,108 @@ class SemanticMutationTests(unittest.TestCase):
                 inspect_snapshot(root)
 
 
+class PinnedIdentityMutationTests(unittest.TestCase):
+    def test_valid_looking_manifest_blob_identity_drift_is_rejected(self) -> None:
+        with copied_snapshot() as root:
+            manifest = load_json(root, "manifest.json")
+            files = manifest["files"]
+            self.assertIsInstance(files, list)
+            config_entry = next(
+                entry
+                for entry in files
+                if isinstance(entry, dict) and entry.get("path") == "config.json"
+            )
+            config_entry["upstream_blob_id"] = (
+                "c3b10d45a829545fbf0d9d2880a1aa0b9ab3b43a"
+            )
+            (root / "manifest.json").write_text(
+                json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                SnapshotValidationError, "reviewed upstream blob identity drifted"
+            ):
+                inspect_snapshot(root)
+
+    def test_license_content_drift_with_refreshed_manifest_is_rejected(self) -> None:
+        with copied_snapshot() as root:
+            path = root / "LICENSE.target.txt"
+            path.write_bytes(path.read_bytes() + b"\n")
+            refresh_manifest(root, "LICENSE.target.txt")
+            with self.assertRaisesRegex(
+                SnapshotValidationError, "reviewed manifest byte identity drifted"
+            ):
+                inspect_snapshot(root)
+
+    def test_benign_config_drift_reaches_final_content_gate(self) -> None:
+        with copied_snapshot() as root:
+            config = load_json(root, "config.json")
+            config["attention_dropout"] = 0.125
+            write_json(root, "config.json", config)
+            with self.assertRaisesRegex(
+                SnapshotValidationError, "reviewed manifest SHA-256 identity drifted"
+            ):
+                inspect_snapshot(root)
+
+    def test_repository_blob_cross_link_is_pinned(self) -> None:
+        with copied_snapshot() as root:
+            repository = load_json(root, "repository.json")
+            files = repository["files"]
+            self.assertIsInstance(files, list)
+            config_entry = next(
+                entry
+                for entry in files
+                if isinstance(entry, dict) and entry.get("path") == "config.json"
+            )
+            config_entry["blob_id"] = (
+                "c3b10d45a829545fbf0d9d2880a1aa0b9ab3b43a"
+            )
+            write_json(root, "repository.json", repository)
+            with self.assertRaisesRegex(
+                SnapshotValidationError, "repository.json blob cross-link drifted"
+            ):
+                inspect_snapshot(root)
+
+    def test_arbitrary_non_expert_tensor_is_rejected(self) -> None:
+        with copied_snapshot() as root:
+            index = load_json(root, "model.safetensors.index.json")
+            weight_map = index["weight_map"]
+            self.assertIsInstance(weight_map, dict)
+            weight_map["audit.non_expert.weight"] = next(iter(weight_map.values()))
+            write_json(root, "model.safetensors.index.json", index)
+            with self.assertRaisesRegex(
+                SnapshotValidationError, "index tensor count drifted"
+            ):
+                inspect_snapshot(root)
+
+    def test_tensor_payload_size_drift_is_rejected(self) -> None:
+        with copied_snapshot() as root:
+            index = load_json(root, "model.safetensors.index.json")
+            metadata = index["metadata"]
+            self.assertIsInstance(metadata, dict)
+            metadata["total_size"] += 8
+            write_json(root, "model.safetensors.index.json", index)
+            with self.assertRaisesRegex(
+                SnapshotValidationError, "tensor payload bytes drifted"
+            ):
+                inspect_snapshot(root)
+
+    def test_parameter_redistribution_preserving_total_is_rejected(self) -> None:
+        with copied_snapshot() as root:
+            repository = load_json(root, "repository.json")
+            classes = repository["safetensors_parameter_classes"]
+            self.assertIsInstance(classes, dict)
+            parameters = classes["parameters"]
+            self.assertIsInstance(parameters, dict)
+            parameters["BF16"] += 1
+            parameters["F32"] -= 1
+            write_json(root, "repository.json", repository)
+            with self.assertRaisesRegex(
+                SnapshotValidationError, "parameter classes drifted"
+            ):
+                inspect_snapshot(root)
+
+
 class ManifestBoundaryTests(unittest.TestCase):
     def test_manifest_byte_length_is_enforced(self) -> None:
         with copied_snapshot() as root:
@@ -324,4 +427,5 @@ class ManifestBoundaryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
