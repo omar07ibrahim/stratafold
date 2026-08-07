@@ -29,18 +29,7 @@ class CaptureM1Tests(unittest.TestCase):
     def _payload() -> dict[str, object]:
         return {
             "evidence_level": "pinned-official-metadata",
-            "safety": {
-                "decoder_mode": "offline",
-                "full_checkpoint": "NOT DOWNLOADED / NOT RUN",
-                "remote_code_execution": False,
-                "snapshot_attestation": {
-                    "remote_code_downloaded": False,
-                    "remote_code_executed": False,
-                    "trust_remote_code": False,
-                    "weight_payload_bytes_read": 0,
-                },
-                "weight_shards_opened": False,
-            },
+            "safety": {},
             "schema_version": 1,
             "status": "validated",
             "target": {

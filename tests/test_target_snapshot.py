@@ -4,6 +4,7 @@ from contextlib import contextmanager, redirect_stderr, redirect_stdout
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import shutil
 import socket
@@ -14,6 +15,8 @@ from unittest.mock import patch
 from stratafold.__main__ import main
 from stratafold.target_snapshot import (
     DEFAULT_SNAPSHOT,
+    MAX_FILE_BYTES,
+    MAX_MANIFEST_BYTES,
     SnapshotValidationError,
     inspect_snapshot,
     loads_json_strict,
@@ -78,12 +81,18 @@ class PinnedSnapshotTests(unittest.TestCase):
         self.assertEqual(topology["hash_layers"], 3)
         self.assertEqual(topology["dspark_target_layer_ids"], [40, 41, 42])
 
-        native = report["native_representation"]
-        self.assertEqual(native["expert_dtype"], "fp4")
-        self.assertEqual(native["declared_torch_dtype"], "bfloat16")
-        self.assertNotIn("other_paths_dtype", native)
-        self.assertEqual(native["quantization_config"]["quant_method"], "fp8")
-        self.assertEqual(native["quantization_config"]["fmt"], "e4m3")
+        declared = report["declared_representation"]
+        self.assertEqual(declared["declared_expert_dtype"], "fp4")
+        self.assertEqual(declared["declared_torch_dtype"], "bfloat16")
+        self.assertEqual(
+            declared["scope"],
+            "configuration declarations only; no shard payload or header inspected",
+        )
+        self.assertNotIn("native_representation", report)
+        self.assertEqual(
+            declared["declared_quantization_config"]["quant_method"], "fp8"
+        )
+        self.assertEqual(declared["declared_quantization_config"]["fmt"], "e4m3")
 
         tensor_index = report["tensor_index"]
         self.assertEqual(tensor_index["tensor_entries"], 72_317)
@@ -103,42 +112,63 @@ class PinnedSnapshotTests(unittest.TestCase):
             },
         )
 
+        parameter_classes = report["api_reported_parameter_classes"]
         self.assertEqual(
-            report["parameter_ledger"]["counts_by_storage_class"]["total"],
+            parameter_classes["counts_by_storage_class"]["total"],
             304_180_418_494,
         )
+        self.assertIn(
+            "not recomputed from shard headers",
+            parameter_classes["scope"],
+        )
+
         ledgers = report["byte_ledgers"]
         self.assertEqual(
-            ledgers["target_tensor_payload"]["bytes"],
+            ledgers["index_declared_tensor_payload"]["bytes"],
             166_878_536_440,
         )
+        repository_bytes = ledgers["api_reported_repository_artifact_bytes"]
+        self.assertEqual(repository_bytes["weight_shard_bytes"], 166_886_535_336)
+        self.assertEqual(repository_bytes["non_weight_file_bytes"], 12_125_738)
         self.assertEqual(
-            ledgers["target_repository_artifacts"]["weight_shard_bytes"],
-            166_886_535_336,
-        )
-        self.assertEqual(
-            ledgers["target_repository_artifacts"]["non_weight_file_bytes"],
-            12_125_738,
-        )
-        self.assertEqual(
-            ledgers["target_repository_artifacts"]["all_repository_file_bytes"],
+            repository_bytes["all_repository_file_bytes"],
             166_898_661_074,
         )
+        gap = ledgers["artifact_minus_index_payload_gap"]
+        self.assertEqual(gap["bytes"], 7_998_896)
         self.assertEqual(
-            ledgers["derived_container_overhead"]["bytes"],
-            7_998_896,
+            gap["formula"],
+            "api_reported_weight_shard_bytes - index_declared_tensor_payload_bytes",
+        )
+        self.assertEqual(
+            gap["scope"],
+            (
+                "unattributed metadata difference; not measured compression or "
+                "proven container overhead"
+            ),
         )
         self.assertEqual(
             ledgers["committed_metadata_snapshot"]["listed_file_bytes"],
             5_628_127,
         )
-        self.assertEqual(report["safety"]["decoder_mode"], "offline")
-        self.assertFalse(report["safety"]["remote_code_execution"])
-        self.assertFalse(report["safety"]["weight_shards_opened"])
-        self.assertEqual(
-            report["safety"]["full_checkpoint"],
-            "NOT DOWNLOADED / NOT RUN",
+
+        safety = report["safety"]
+        observation = safety["decoder_observation"]
+        self.assertEqual(observation["scope"], "this invocation and snapshot only")
+        self.assertEqual(observation["snapshot_weight_shard_files_present"], 0)
+        self.assertEqual(observation["weight_shard_files_opened_by_decoder"], 0)
+        self.assertFalse(
+            observation["target_code_imported_or_executed_by_decoder"]
         )
+        self.assertFalse(observation["full_checkpoint_operation_performed"])
+        attestation = safety["capture_attestation"]
+        self.assertEqual(attestation["evidence_tag"], "unverified")
+        self.assertEqual(
+            attestation["scope"],
+            "capture-time statement; not an independent or hostwide audit",
+        )
+        self.assertEqual(safety["hostwide_download_state"], "not_audited")
+        self.assertNotIn("full_checkpoint", safety)
 
     def test_inspection_does_not_open_a_socket(self) -> None:
         with patch.object(socket, "socket", side_effect=AssertionError("network used")):
@@ -364,6 +394,49 @@ class PinnedIdentityMutationTests(unittest.TestCase):
 
 
 class ManifestBoundaryTests(unittest.TestCase):
+    def test_oversized_sparse_manifest_is_rejected_before_read(self) -> None:
+        with copied_snapshot() as root:
+            with (root / "manifest.json").open("wb") as stream:
+                stream.truncate(MAX_MANIFEST_BYTES + 1)
+            with self.assertRaisesRegex(
+                SnapshotValidationError,
+                rf"manifest\.json: file exceeds {MAX_MANIFEST_BYTES}-byte safety limit",
+            ):
+                inspect_snapshot(root)
+
+    def test_declared_small_actual_file_is_rejected_before_read(self) -> None:
+        with copied_snapshot() as root:
+            with (root / "config.json").open("ab") as stream:
+                stream.write(b"\n")
+            with self.assertRaisesRegex(
+                SnapshotValidationError,
+                r"config\.json: byte length mismatch",
+            ):
+                inspect_snapshot(root)
+
+    def test_oversized_sparse_listed_file_is_rejected_before_read(self) -> None:
+        with copied_snapshot() as root:
+            with (root / "config.json").open("wb") as stream:
+                stream.truncate(MAX_FILE_BYTES + 1)
+            with self.assertRaisesRegex(
+                SnapshotValidationError,
+                rf"config\.json: file exceeds {MAX_FILE_BYTES}-byte safety limit",
+            ):
+                inspect_snapshot(root)
+
+    def test_non_regular_snapshot_entry_is_rejected_without_opening(self) -> None:
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("FIFO creation is unavailable")
+        with copied_snapshot() as root:
+            path = root / "config.json"
+            path.unlink()
+            try:
+                os.mkfifo(path)
+            except OSError as exc:
+                self.skipTest(f"FIFO creation unavailable: {exc}")
+            with self.assertRaisesRegex(SnapshotValidationError, "non-file entry"):
+                inspect_snapshot(root)
+
     def test_manifest_byte_length_is_enforced(self) -> None:
         with copied_snapshot() as root:
             manifest = load_json(root, "manifest.json")

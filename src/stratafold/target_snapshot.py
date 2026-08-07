@@ -9,8 +9,10 @@ from __future__ import annotations
 from datetime import datetime
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import re
+import stat
 from typing import Final, Iterable
 
 
@@ -48,8 +50,10 @@ EXPECTED_URLS = {
         f"DeepSeek-V4-Flash-0731/revision/{TARGET_REVISION}?blobs=true"
     ),
 }
+MAX_MANIFEST_BYTES = 64 * 1024
 MAX_FILE_BYTES = 32 * 1024**2
 MAX_SNAPSHOT_BYTES = 128 * 1024**2
+_READ_CHUNK_BYTES = 64 * 1024
 
 REVIEWED_FILE_IDENTITIES: Final[
     dict[str, tuple[int, str, str | None]]
@@ -233,25 +237,108 @@ def _path(value: object, label: str, *, basename: bool) -> str:
     return text
 
 
-def _read_file(root: Path, relative: str) -> bytes:
+def _safe_os_error(exc: OSError) -> str:
+    return exc.strerror or type(exc).__name__
+
+
+def _open_snapshot_file(root: Path, relative: str) -> int:
+    file_flags = os.O_RDONLY
+    for name in ("O_BINARY", "O_CLOEXEC", "O_NOFOLLOW", "O_NONBLOCK"):
+        file_flags |= getattr(os, name, 0)
+
+    if os.open in os.supports_dir_fd:
+        directory_flags = os.O_RDONLY
+        for name in ("O_CLOEXEC", "O_DIRECTORY", "O_NOFOLLOW"):
+            directory_flags |= getattr(os, name, 0)
+        directory_descriptor = -1
+        try:
+            directory_descriptor = os.open(root, directory_flags)
+            if not stat.S_ISDIR(os.fstat(directory_descriptor).st_mode):
+                raise SnapshotValidationError("snapshot root is not a directory")
+            return os.open(
+                relative,
+                file_flags,
+                dir_fd=directory_descriptor,
+            )
+        except SnapshotValidationError:
+            raise
+        except OSError as exc:
+            raise SnapshotValidationError(
+                f"cannot safely open snapshot file {relative}: {_safe_os_error(exc)}"
+            ) from None
+        finally:
+            if directory_descriptor >= 0:
+                os.close(directory_descriptor)
+
     candidate = root / relative
     try:
         if candidate.is_symlink():
             raise SnapshotValidationError(
                 f"snapshot file must not be a symlink: {relative}"
             )
-        if not candidate.is_file():
-            raise SnapshotValidationError(
-                f"snapshot file is missing or not regular: {relative}"
-            )
         candidate.resolve(strict=True).relative_to(root.resolve(strict=True))
-        return candidate.read_bytes()
+        return os.open(candidate, file_flags)
     except SnapshotValidationError:
         raise
     except (OSError, RuntimeError, ValueError) as exc:
+        detail = (
+            _safe_os_error(exc)
+            if isinstance(exc, OSError)
+            else type(exc).__name__
+        )
         raise SnapshotValidationError(
-            f"cannot safely read snapshot file {relative}: {exc}"
-        ) from exc
+            f"cannot safely open snapshot file {relative}: {detail}"
+        ) from None
+
+
+def _read_file(
+    root: Path,
+    relative: str,
+    *,
+    expected_bytes: int | None,
+    maximum_bytes: int,
+) -> bytes:
+    descriptor = _open_snapshot_file(root, relative)
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise SnapshotValidationError(
+                f"snapshot file is not regular: {relative}"
+            )
+        observed_bytes = metadata.st_size
+        if observed_bytes > maximum_bytes:
+            raise SnapshotValidationError(
+                f"{relative}: file exceeds {maximum_bytes}-byte safety limit"
+            )
+        if expected_bytes is not None and observed_bytes != expected_bytes:
+            raise SnapshotValidationError(
+                f"{relative}: byte length mismatch; "
+                f"expected {expected_bytes}, observed {observed_bytes}"
+            )
+
+        data = bytearray()
+        remaining = observed_bytes
+        while remaining:
+            chunk = os.read(descriptor, min(_READ_CHUNK_BYTES, remaining))
+            if not chunk:
+                raise SnapshotValidationError(
+                    f"snapshot file changed while being read: {relative}"
+                )
+            data.extend(chunk)
+            remaining -= len(chunk)
+        if os.read(descriptor, 1):
+            raise SnapshotValidationError(
+                f"snapshot file grew while being read: {relative}"
+            )
+        return bytes(data)
+    except SnapshotValidationError:
+        raise
+    except OSError as exc:
+        raise SnapshotValidationError(
+            f"cannot safely read snapshot file {relative}: {_safe_os_error(exc)}"
+        ) from None
+    finally:
+        os.close(descriptor)
 
 
 def _validate_manifest(
@@ -362,12 +449,14 @@ def _load_snapshot(
         if root.is_symlink():
             raise SnapshotValidationError("snapshot directory must not be a symlink")
         if not root.is_dir():
-            raise SnapshotValidationError(f"snapshot directory does not exist: {root}")
+            raise SnapshotValidationError("snapshot directory does not exist")
         children = list(root.iterdir())
     except SnapshotValidationError:
         raise
     except OSError as exc:
-        raise SnapshotValidationError(f"cannot inspect snapshot directory: {exc}") from exc
+        raise SnapshotValidationError(
+            f"cannot inspect snapshot directory: {_safe_os_error(exc)}"
+        ) from None
 
     for child in children:
         if child.is_symlink():
@@ -381,15 +470,25 @@ def _load_snapshot(
     if {child.name for child in children} != EXPECTED_FILES | {"manifest.json"}:
         raise SnapshotValidationError("snapshot directory file set does not match")
 
-    manifest_bytes = _read_file(root, "manifest.json")
+    manifest_bytes = _read_file(
+        root,
+        "manifest.json",
+        expected_bytes=None,
+        maximum_bytes=MAX_MANIFEST_BYTES,
+    )
     entries, safety = _validate_manifest(
         loads_json_strict(manifest_bytes, label="manifest.json")
     )
     verified: dict[str, bytes] = {}
     listed_bytes = 0
     for path in sorted(entries):
-        data = _read_file(root, path)
         expected_bytes = _int(entries[path]["bytes"], f"manifest[{path}].bytes")
+        data = _read_file(
+            root,
+            path,
+            expected_bytes=expected_bytes,
+            maximum_bytes=MAX_FILE_BYTES,
+        )
         if len(data) != expected_bytes:
             raise SnapshotValidationError(
                 f"{path}: byte length mismatch; "
@@ -517,9 +616,9 @@ def _validate_config(payload: object) -> tuple[dict[str, object], dict[str, obje
             "dspark_target_layer_ids": dspark,
         },
         {
-            "expert_dtype": expert_dtype,
+            "declared_expert_dtype": expert_dtype,
             "declared_torch_dtype": torch_dtype,
-            "quantization_config": {
+            "declared_quantization_config": {
                 **expected_quant,
                 "weight_block_size": block,
             },
@@ -937,7 +1036,7 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
     """Validate and summarize the snapshot without network or remote code."""
 
     files, safety, entries, listed_bytes, manifest_bytes = _load_snapshot(snapshot_dir)
-    topology, native = _validate_config(
+    topology, declared_representation = _validate_config(
         loads_json_strict(files["config.json"], label="config.json")
     )
     (
@@ -971,10 +1070,13 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
             "source": "config.json",
             **topology,
         },
-        "native_representation": {
+        "declared_representation": {
             "evidence_tag": "source-reproduced",
             "source": "config.json",
-            **native,
+            "scope": (
+                "configuration declarations only; no shard payload or header inspected"
+            ),
+            **declared_representation,
         },
         "tensor_index": {
             "evidence_tag": "source-reproduced",
@@ -984,27 +1086,43 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
             "shard_denominator": denominator,
             "expert_census": census,
         },
-        "parameter_ledger": {
+        "api_reported_parameter_classes": {
             "evidence_tag": "source-reproduced",
             "source": "repository.json",
+            "scope": (
+                "parameter classes reported by the pinned repository API projection; "
+                "not recomputed from shard headers"
+            ),
             "counts_by_storage_class": parameters,
         },
         "byte_ledgers": {
-            "target_tensor_payload": {
+            "index_declared_tensor_payload": {
                 "evidence_tag": "source-reproduced",
                 "source": "model.safetensors.index.json",
+                "scope": "byte count declared by index metadata; no shard payload inspected",
                 "bytes": payload_bytes,
             },
-            "target_repository_artifacts": {
+            "api_reported_repository_artifact_bytes": {
                 "evidence_tag": "source-reproduced",
                 "source": "repository.json",
+                "scope": (
+                    "artifact byte counts reported by the pinned repository API "
+                    "projection; no artifact payload inspected"
+                ),
                 "weight_shard_bytes": artifacts["weight_shards"],
                 "non_weight_file_bytes": artifacts["non_weight_files"],
                 "all_repository_file_bytes": artifacts["all_repository_files"],
             },
-            "derived_container_overhead": {
+            "artifact_minus_index_payload_gap": {
                 "evidence_tag": "derived",
-                "formula": "weight_shard_bytes - tensor_payload_bytes",
+                "formula": (
+                    "api_reported_weight_shard_bytes - "
+                    "index_declared_tensor_payload_bytes"
+                ),
+                "scope": (
+                    "unattributed metadata difference; not measured compression or "
+                    "proven container overhead"
+                ),
                 "bytes": artifacts["weight_shards"] - payload_bytes,
             },
             "committed_metadata_snapshot": {
@@ -1017,15 +1135,23 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
             },
         },
         "safety": {
-            "decoder_mode": "offline",
-            "remote_code_execution": False,
-            "weight_shards_opened": False,
-            "full_checkpoint": "NOT DOWNLOADED / NOT RUN",
-            "snapshot_attestation": {
-                "evidence_tag": "source-reproduced",
+            "decoder_observation": {
+                "evidence_tag": "measured",
+                "scope": "this invocation and snapshot only",
+                "snapshot_weight_shard_files_present": 0,
+                "weight_shard_files_opened_by_decoder": 0,
+                "target_code_imported_or_executed_by_decoder": False,
+                "full_checkpoint_operation_performed": False,
+            },
+            "capture_attestation": {
+                "evidence_tag": "unverified",
                 "source": "manifest.json",
+                "scope": (
+                    "capture-time statement; not an independent or hostwide audit"
+                ),
                 **safety,
             },
+            "hostwide_download_state": "not_audited",
         },
     }
 
