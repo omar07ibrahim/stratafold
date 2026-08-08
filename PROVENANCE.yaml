@@ -17,13 +17,42 @@ boundary:
     - source-code copying or translation from research repositories
     - copying or paraphrasing kimi-k3-in-c code, prose, layouts, fixtures, assets, branding, or claims
     - representing dtype changes as structural compression
+  official_metadata_reuse:
+    generated_summaries: original StrataFold outputs derived from bounded official metadata
+    full_api_response_body_redistributed: false
+    target_code_redistributed: false
+    checkpoint_weights_redistributed: false
+    third_party_visuals_redistributed: false
+    upstream_fact_ownership_claimed: false
 sources:
   - id: deepseek-v4-flash-0731
     kind: official-model-metadata
     url: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+    api_projection_url: "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V4-Flash-0731/revision/7872f01b1d1fe23eabc4c98b48bffcef5a386062?blobs=true"
     revision: 7872f01b1d1fe23eabc4c98b48bffcef5a386062
-    status: bootstrap-unverified
-    reuse: metadata-only
+    status: pinned-official-metadata-validated
+    retrieval:
+      kind: bounded-metadata-only
+      started_at_utc: "2026-08-06T12:24:23Z"
+      ended_at_utc: "2026-08-06T12:33:44Z"
+    verification:
+      status: verified
+      kind: post-capture-api-projection-verification
+      verified_at_utc: "2026-08-08T15:49:13Z"
+      evidence:
+        - metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json
+        - metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/config.json
+        - metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/model.safetensors.index.json
+        - metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.json
+        - metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json
+        - evidence/raw/m1_target_genome.json
+        - evidence/raw/m1_target_genome.txt
+      limitations:
+        - the full API response body is not committed
+        - no checkpoint shard header or payload was inspected
+        - the capture-time attestation is unverified
+        - the hostwide download state is unaudited
+    reuse: metadata-only-derived-summaries
   - id: deepseek-v4-report
     kind: primary-paper
     url: https://arxiv.org/abs/2606.19348

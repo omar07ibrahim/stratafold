@@ -2,37 +2,60 @@
 
 > Fold experts, not precision.
 
-StrataFold is an independent clean-room laboratory for **structural Mixture-of-Experts compression without additional quantization**. It investigates whether routing-aware shared structure can reduce stored expert weights while preserving each source tensor's native dtype.
+StrataFold is an independent clean-room laboratory for **structural Mixture-of-Experts compression without additional quantization**. It investigates whether routing-aware shared structure can reduce stored expert weights while preserving each source tensor's native dtype. The primary adapter targets `deepseek-ai/DeepSeek-V4-Flash-0731` at the exact pinned revision `7872f01b1d1fe23eabc4c98b48bffcef5a386062`.
 
-The primary adapter targets `deepseek-ai/DeepSeek-V4-Flash-0731`. That released checkpoint is already mixed precision: its experts use a native FP4 representation and other paths include an FP8 E4M3 configuration. StrataFold uses that representation as the target baseline; it does not call the release unquantized and does not count a dtype or bit-width change as compression.
+The target baseline is described from bounded official metadata. Its config declares `expert_dtype=fp4`, `torch_dtype=bfloat16`, and an FP8 `e4m3` quantization configuration. These are configuration declarations—not shard-header or payload observations. StrataFold does not call the target unquantized and does not count a dtype or bit-width change as structural compression.
 
-## Evidence state
+## Validated M1 target genome
 
-The repository is under active milestone development. Current evidence levels are intentionally separate:
+M1 is now a validated, pinned-official-metadata snapshot:
 
-- `[measured]` the dependency-free resource doctor and its request-policy unit tests run on this host;
-- `[unverified]` target topology and artifact facts remain bootstrap inputs until the pinned official metadata snapshot and hashes pass M1;
-- `[not-run]` no DeepSeek weight shard has been downloaded, opened, compressed, or served here;
-- `[not-yet-claimed]` Route-Stratified Factorization is a falsifiable research hypothesis, not a performance or SOTA claim.
+- **Topology declarations:** 43 hidden layers, hidden size 4096, 256 routed experts plus one shared expert per layer, top-6 routing, three hash layers, one next-token-prediction layer, and DSpark target layers 40–42.
+- **Index declarations:** 72,317 tensor names, 48 listed shard filenames, and 166,878,536,440 declared tensor payload bytes.
+- **Verified API projection:** 166,886,535,336 weight-shard bytes, 12,125,738 non-weight-file bytes, and 166,898,661,074 total repository-file bytes.
+- **API-reported parameter classes:** 304,180,418,494 total, reproduced from the committed receipt and not recomputed from shard headers.
+- **Derived difference:** 7,998,896 bytes between API-reported weight-shard bytes and index-declared tensor payload bytes. It is unattributed metadata—not measured compression or proven container overhead.
 
-All quantitative claims must appear in [`CLAIMS.json`](CLAIMS.json) with one of `measured`, `source-reproduced`, `derived`, `projected`, or `unverified`, plus a reproducible evidence reference where applicable.
+Evidence surfaces are committed directly:
 
-## Safety-first start
+- [raw M1 JSON](evidence/raw/m1_target_genome.json)
+- [raw M1 CLI transcript](evidence/raw/m1_target_genome.txt)
+- [provenance ledger](PROVENANCE.yaml)
+- [snapshot manifest](metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json)
+- [repository projection receipt](metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json)
+- [claim registry](CLAIMS.json)
 
-The doctor is standard-library-only, so it can run before an install, build, cache fill, or metadata fetch:
+Every quantitative claim is registered in `CLAIMS.json` with an allowed evidence tag, exact committed evidence paths, and a reproduce command.
+
+## Setup and verification
+
+The control plane is dependency-free and requires Python 3.10+ and `make`:
 
 ```bash
+git clone https://github.com/omar07ibrahim/stratafold.git
+cd stratafold
 make doctor
 make test
+make evidence-m1-check
+make evidence-m1-verify
+PYTHONPATH=src python3 -m stratafold inspect-target
 ```
 
-It enforces at least 2 GiB free on `/`, a 750 MiB complete-workspace ceiling, a 128 MiB cache/fetch ceiling, a 32 MiB per-object ceiling, exact revision pins, and metadata-only URLs. Weight blobs, `.safetensors`, model `.bin` files, and LFS/Xet delivery paths fail closed before an opener is called.
+`make doctor` enforces the workspace, cache, object-size, revision, and metadata-only request boundaries before any evidence command runs. `make evidence-m1-check` reconstructs the expected target-genome surfaces in memory and compares them byte-for-byte without rewriting; `make evidence-m1-verify` validates the adopted evidence identities and semantics.
 
-## Scope and honesty
+## Evidence status and safety
 
-This small CPU host supports generated micro-checkpoints and metadata-only schema validation. It is not a full-model machine. Full-checkpoint work is limited to a hardware-gated dry-run manifest and runbook; the approximately 166.9 GB target artifact will not be downloaded here. `[unverified bootstrap]`
+Evidence labels remain deliberately separate:
 
-See the [benchmark contract](docs/BENCHMARK_CONTRACT.md), [clean-room decision](docs/adr/0001-clean-room.md), [threat model](docs/THREAT_MODEL.md), and [prior-art boundary](docs/PRIOR_ART.md) before interpreting results.
+- `[source-reproduced]` config, topology, index, repository byte ledgers, and API-reported parameter classes were reproduced from the committed metadata and post-capture receipt;
+- `[derived]` the 7,998,896-byte difference is arithmetic with no causal attribution;
+- `[measured]` the validated decoder invocation found zero shard files in the snapshot, opened zero shard files, executed no target code, and performed no full-checkpoint operation;
+- `[unverified]` the capture-time attestation is not an independent audit, and the hostwide download state is unaudited;
+- `[not-run]` the full checkpoint is **NOT DOWNLOADED / NOT RUN** for the M1 project record.
+
+This host supports generated micro-checkpoints and metadata-only validation. No M1 result is a compression-ratio, quality, throughput, active-compute, performance, or state-of-the-art claim.
+
+See the [target ledger](docs/TARGET_LEDGER.md), [benchmark contract](docs/BENCHMARK_CONTRACT.md), [clean-room decision](docs/adr/0001-clean-room.md), [threat model](docs/THREAT_MODEL.md), and [prior-art boundary](docs/PRIOR_ART.md) before interpreting future results.
 
 StrataFold is not affiliated with or endorsed by DeepSeek, Hugging Face, Moonshot AI, or any cited researcher or institution.
 

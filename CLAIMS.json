@@ -10,18 +10,25 @@
   "claims": [
     {
       "id": "SF-C0001",
-      "statement": "DeepSeek-V4-Flash-0731 is a natively mixed-precision release with FP4 experts and an FP8 E4M3 configuration on other paths.",
-      "tag": "unverified",
-      "scope": "bootstrap target fact pending the M1 pinned official snapshot",
-      "evidence": [],
-      "reproduce": null
+      "statement": "At pinned revision 7872f01b1d1fe23eabc4c98b48bffcef5a386062, config.json declares expert_dtype=fp4, torch_dtype=bfloat16, and quantization_config quant_method=fp8 with fmt=e4m3.",
+      "tag": "source-reproduced",
+      "scope": "configuration declarations only; no safetensors shard header or payload was inspected, and no dtype change is credited as structural compression",
+      "evidence": [
+        "evidence/raw/m1_target_genome.json",
+        "evidence/raw/m1_target_genome.txt",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/config.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "reproduce": "make evidence-m1-check && make evidence-m1-verify"
     },
     {
       "id": "SF-C0002",
       "statement": "The committed M0 repository tree contains no target weight blob or recognized weight-file extension.",
       "tag": "measured",
       "scope": "files inspected by the dependency-free repository policy check",
-      "evidence": ["evidence/raw/m0_gate.json"],
+      "evidence": [
+        "evidence/raw/m0_gate.json"
+      ],
       "reproduce": "make evidence-m0"
     },
     {
@@ -29,8 +36,104 @@
       "statement": "A planned .safetensors request is rejected before the injected network opener is called.",
       "tag": "measured",
       "scope": "standard-library request-policy test",
-      "evidence": ["evidence/raw/m0_gate.json", "tests/test_doctor.py"],
+      "evidence": [
+        "evidence/raw/m0_gate.json",
+        "tests/test_doctor.py"
+      ],
       "reproduce": "make evidence-m0"
+    },
+    {
+      "id": "SF-C0004",
+      "statement": "The pinned config declares 43 hidden layers, hidden size 4096, 256 routed experts plus one shared expert per layer, top-6 routing, three hash layers, one next-token-prediction layer, and DSpark target layer IDs 40, 41, and 42.",
+      "tag": "source-reproduced",
+      "scope": "configuration topology declarations only; no checkpoint execution or active-compute inference",
+      "evidence": [
+        "evidence/raw/m1_target_genome.json",
+        "evidence/raw/m1_target_genome.txt",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/config.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "reproduce": "make evidence-m1-check && make evidence-m1-verify"
+    },
+    {
+      "id": "SF-C0005",
+      "statement": "The pinned safetensors index lists 72,317 tensor names across 48 shard filenames and declares 166,878,536,440 tensor payload bytes.",
+      "tag": "source-reproduced",
+      "scope": "index metadata only; no shard header, shard payload, or tensor value was inspected",
+      "evidence": [
+        "evidence/raw/m1_target_genome.json",
+        "evidence/raw/m1_target_genome.txt",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/model.safetensors.index.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "reproduce": "make evidence-m1-check && make evidence-m1-verify"
+    },
+    {
+      "id": "SF-C0006",
+      "statement": "The verified repository API projection reports 166,886,535,336 weight-shard bytes, 12,125,738 non-weight-file bytes, and 166,898,661,074 total repository-file bytes.",
+      "tag": "source-reproduced",
+      "scope": "offline reconstruction from the committed post-capture receipt; no artifact payload was inspected and the full API response body is not committed",
+      "evidence": [
+        "evidence/raw/m1_target_genome.json",
+        "evidence/raw/m1_target_genome.txt",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "reproduce": "make evidence-m1-check && make evidence-m1-verify"
+    },
+    {
+      "id": "SF-C0007",
+      "statement": "The verified repository API projection reports parameter classes BF16 1,483,567,488; F32 37,741,630; F8_E4M3 6,304,038,912; I64 2,327,040; and I8 296,352,743,424, totaling 304,180,418,494.",
+      "tag": "source-reproduced",
+      "scope": "API-reported parameter classes reproduced from the committed receipt; not recomputed from shard headers",
+      "evidence": [
+        "evidence/raw/m1_target_genome.json",
+        "evidence/raw/m1_target_genome.txt",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "reproduce": "make evidence-m1-check && make evidence-m1-verify"
+    },
+    {
+      "id": "SF-C0008",
+      "statement": "API-reported weight-shard bytes minus index-declared tensor payload bytes equals 7,998,896 bytes.",
+      "tag": "derived",
+      "scope": "unattributed metadata difference; not measured compression and not proven container overhead",
+      "evidence": [
+        "evidence/raw/m1_target_genome.json",
+        "evidence/raw/m1_target_genome.txt",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/model.safetensors.index.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "reproduce": "make evidence-m1-check && make evidence-m1-verify"
+    },
+    {
+      "id": "SF-C0009",
+      "statement": "For the validated decoder invocation, the committed snapshot contained zero weight-shard files, the decoder opened zero weight-shard files, executed no target code, and performed no full-checkpoint operation.",
+      "tag": "measured",
+      "scope": "that decoder invocation and committed snapshot only; not a capture-time or hostwide audit",
+      "evidence": [
+        "evidence/raw/m1_target_genome.json",
+        "evidence/raw/m1_target_genome.txt",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "reproduce": "make evidence-m1-check && make evidence-m1-verify"
+    },
+    {
+      "id": "SF-C0010",
+      "statement": "The reviewed M1 record marks the full checkpoint NOT DOWNLOADED / NOT RUN; its capture attestation remains unverified and its hostwide download state remains unaudited.",
+      "tag": "unverified",
+      "scope": "project M1 status and capture-time statement only; no inference about the rest of the host",
+      "evidence": [
+        "evidence/raw/m1_target_genome.json",
+        "evidence/raw/m1_target_genome.txt",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "reproduce": "make evidence-m1-check && make evidence-m1-verify"
     }
   ]
 }
