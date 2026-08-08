@@ -71,6 +71,29 @@ class PinnedSnapshotTests(unittest.TestCase):
 
         self.assertEqual(report["status"], "validated")
         self.assertEqual(report["evidence_level"], "pinned-official-metadata")
+        self.assertEqual(report["schema_version"], 2)
+        verification = report["repository_projection_verification"]
+        self.assertEqual(verification["status"], "verified")
+        self.assertEqual(
+            verification["projection_input"]["sha256"],
+            "16dd1cea2018d8af2a84922bc6fff22a7988dbb4ecc58d9c92486fa01b178291",
+        )
+        self.assertEqual(
+            verification["repository_projection"],
+            {
+                "bytes": 22_284,
+                "path": "repository.json",
+                "sha256": (
+                    "6cacae22067d225351b46d30b3b4335db18b8941e342ac24ab945d81ebef4800"
+                ),
+                "sibling_order": "lexicographic-by-rfilename",
+            },
+        )
+        self.assertFalse(verification["response"]["body_committed"])
+        self.assertEqual(
+            verification["safety"]["weight_or_lfs_payload_bytes_read"],
+            0,
+        )
         topology = report["topology"]
         self.assertEqual(topology["evidence_tag"], "source-reproduced")
         self.assertEqual(topology["hidden_layers"], 43)
@@ -149,7 +172,7 @@ class PinnedSnapshotTests(unittest.TestCase):
         )
         self.assertEqual(
             ledgers["committed_metadata_snapshot"]["listed_file_bytes"],
-            5_628_127,
+            5_652_705,
         )
 
         safety = report["safety"]
@@ -435,6 +458,22 @@ class ManifestBoundaryTests(unittest.TestCase):
             except OSError as exc:
                 self.skipTest(f"FIFO creation unavailable: {exc}")
             with self.assertRaisesRegex(SnapshotValidationError, "non-file entry"):
+                inspect_snapshot(root)
+
+    def test_original_retrieval_window_cannot_be_relabelled(self) -> None:
+        with copied_snapshot() as root:
+            manifest = load_json(root, "manifest.json")
+            window = manifest["retrieval_window_utc"]
+            self.assertIsInstance(window, dict)
+            window["end"] = "2026-08-08T15:49:13Z"
+            (root / "manifest.json").write_text(
+                json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                SnapshotValidationError,
+                "original retrieval window identity drifted",
+            ):
                 inspect_snapshot(root)
 
     def test_manifest_byte_length_is_enforced(self) -> None:

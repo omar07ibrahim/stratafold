@@ -15,6 +15,13 @@ import re
 import stat
 from typing import Final, Iterable
 
+from .repository_projection import (
+    EXPECTED_RECEIPT_BYTES as PROJECTION_RECEIPT_BYTES,
+    EXPECTED_RECEIPT_SHA256 as PROJECTION_RECEIPT_SHA256,
+    ProjectionVerificationError,
+    verify_projection_bytes,
+)
+
 
 TARGET_REPOSITORY = "deepseek-ai/DeepSeek-V4-Flash-0731"
 TARGET_REVISION = "7872f01b1d1fe23eabc4c98b48bffcef5a386062"
@@ -30,6 +37,7 @@ EXPECTED_FILES = frozenset(
         "LICENSE.target.txt",
         "model.safetensors.index.json",
         "repository.json",
+        "repository.receipt.json",
     }
 )
 EXPECTED_URLS = {
@@ -46,6 +54,10 @@ EXPECTED_URLS = {
         f"{TARGET_REVISION}/model.safetensors.index.json"
     ),
     "repository.json": (
+        "https://huggingface.co/api/models/deepseek-ai/"
+        f"DeepSeek-V4-Flash-0731/revision/{TARGET_REVISION}?blobs=true"
+    ),
+    "repository.receipt.json": (
         "https://huggingface.co/api/models/deepseek-ai/"
         f"DeepSeek-V4-Flash-0731/revision/{TARGET_REVISION}?blobs=true"
     ),
@@ -78,11 +90,20 @@ REVIEWED_FILE_IDENTITIES: Final[
         "6cacae22067d225351b46d30b3b4335db18b8941e342ac24ab945d81ebef4800",
         None,
     ),
+    "repository.receipt.json": (
+        PROJECTION_RECEIPT_BYTES,
+        PROJECTION_RECEIPT_SHA256,
+        None,
+    ),
 }
 REPOSITORY_PATHS: Final[dict[str, str]] = {
     "config.json": "config.json",
     "model.safetensors.index.json": "model.safetensors.index.json",
     "LICENSE.target.txt": "LICENSE",
+}
+EXPECTED_RETRIEVAL_WINDOW: Final = {
+    "start": "2026-08-06T12:24:23Z",
+    "end": "2026-08-06T12:33:44Z",
 }
 EXPECTED_REPOSITORY_FILE_COUNT: Final = 74
 EXPECTED_TENSOR_COUNT: Final = 72_317
@@ -347,10 +368,17 @@ def _validate_manifest(
     manifest = _obj(payload, "manifest.json")
     _keys(
         manifest,
-        {"files", "retrieval_window_utc", "safety", "schema_version", "target"},
+        {
+            "files",
+            "projection_verification",
+            "retrieval_window_utc",
+            "safety",
+            "schema_version",
+            "target",
+        },
         "manifest.json",
     )
-    _int(manifest["schema_version"], "manifest.schema_version", expected=1)
+    _int(manifest["schema_version"], "manifest.schema_version", expected=2)
 
     target = _obj(manifest["target"], "manifest.target")
     _keys(target, {"evidence_level", "repository", "revision"}, "manifest.target")
@@ -376,6 +404,41 @@ def _validate_manifest(
             raise SnapshotValidationError("manifest contains an invalid timestamp") from exc
     if stamps[1] < stamps[0]:
         raise SnapshotValidationError("manifest retrieval window is reversed")
+    if window != EXPECTED_RETRIEVAL_WINDOW:
+        raise SnapshotValidationError(
+            "manifest original retrieval window identity drifted"
+        )
+
+    verification = _obj(
+        manifest["projection_verification"],
+        "manifest.projection_verification",
+    )
+    _keys(
+        verification,
+        {"capture_kind", "receipt", "verified_at_utc"},
+        "manifest.projection_verification",
+    )
+    if _str(
+        verification["capture_kind"],
+        "manifest.projection_verification.capture_kind",
+    ) != "post-capture-api-projection-verification":
+        raise SnapshotValidationError(
+            "manifest projection verification kind does not match"
+        )
+    if _str(
+        verification["receipt"],
+        "manifest.projection_verification.receipt",
+    ) != "repository.receipt.json":
+        raise SnapshotValidationError(
+            "manifest projection verification receipt does not match"
+        )
+    if _str(
+        verification["verified_at_utc"],
+        "manifest.projection_verification.verified_at_utc",
+    ) != "2026-08-08T15:49:13Z":
+        raise SnapshotValidationError(
+            "manifest projection verification timestamp does not match"
+        )
 
     safety = _obj(manifest["safety"], "manifest.safety")
     _keys(
@@ -415,12 +478,21 @@ def _validate_manifest(
         _digest(entry["sha256"], f"{label}.sha256", _HEX64)
         if _str(entry["source_url"], f"{label}.source_url") != EXPECTED_URLS.get(path):
             raise SnapshotValidationError(f"{label}: source URL is not allowlisted")
-        if path == "repository.json":
+        if path in {"repository.json", "repository.receipt.json"}:
             _keys(entry, required | {"derivation"}, label)
-            if _str(entry["derivation"], f"{label}.derivation") != (
-                "canonical stable-field projection documented in source.selection"
-            ):
-                raise SnapshotValidationError("repository derivation does not match")
+            expected_derivation = {
+                "repository.json": (
+                    "canonical stable-field projection documented in source.selection"
+                ),
+                "repository.receipt.json": (
+                    "post-capture verification receipt; full response body "
+                    "deliberately omitted"
+                ),
+            }[path]
+            if _str(entry["derivation"], f"{label}.derivation") != expected_derivation:
+                raise SnapshotValidationError(
+                    f"{path}: derivation does not match"
+                )
         else:
             _keys(entry, required | {"upstream_blob_id"}, label)
             _digest(entry["upstream_blob_id"], f"{label}.upstream_blob_id", _HEX40)
@@ -1031,6 +1103,33 @@ def _validate_reviewed_identities(
             "repository.json: reviewed official content identity drifted"
         )
 
+    receipt_bytes, receipt_sha, _ = REVIEWED_FILE_IDENTITIES[
+        "repository.receipt.json"
+    ]
+    receipt_entry = entries["repository.receipt.json"]
+    if _int(
+        receipt_entry["bytes"],
+        "manifest[repository.receipt.json].bytes",
+    ) != receipt_bytes:
+        raise SnapshotValidationError(
+            "repository.receipt.json: reviewed manifest byte identity drifted"
+        )
+    if _str(
+        receipt_entry["sha256"],
+        "manifest[repository.receipt.json].sha256",
+    ) != receipt_sha:
+        raise SnapshotValidationError(
+            "repository.receipt.json: reviewed manifest SHA-256 identity drifted"
+        )
+    receipt_data = files["repository.receipt.json"]
+    if (
+        len(receipt_data) != receipt_bytes
+        or hashlib.sha256(receipt_data).hexdigest() != receipt_sha
+    ):
+        raise SnapshotValidationError(
+            "repository.receipt.json: reviewed content identity drifted"
+        )
+
 
 def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]:
     """Validate and summarize the snapshot without network or remote code."""
@@ -1057,13 +1156,31 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
         artifacts["weight_shards"],
     )
     _validate_reviewed_identities(files, entries, repository_blob_ids)
+    try:
+        projection_verification = verify_projection_bytes(
+            files["repository.receipt.json"],
+            files["repository.json"],
+        )
+    except ProjectionVerificationError as exc:
+        raise SnapshotValidationError(
+            f"repository projection verification failed: {exc}"
+        ) from exc
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "status": "validated",
         "evidence_level": "pinned-official-metadata",
         "target": {
             "repository": TARGET_REPOSITORY,
             "revision": TARGET_REVISION,
+        },
+        "repository_projection_verification": {
+            "evidence_tag": "source-reproduced",
+            "source": ["repository.receipt.json", "repository.json"],
+            "scope": (
+                "offline reconstruction from the committed post-capture receipt; "
+                "the full API response body is not committed"
+            ),
+            **projection_verification,
         },
         "topology": {
             "evidence_tag": "source-reproduced",
@@ -1089,9 +1206,11 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
         "api_reported_parameter_classes": {
             "evidence_tag": "source-reproduced",
             "source": "repository.json",
+            "verification_source": "repository.receipt.json",
             "scope": (
-                "parameter classes reported by the pinned repository API projection; "
-                "not recomputed from shard headers"
+                "parameter classes reported by the pinned repository API projection "
+                "and reproduced offline from its post-capture receipt; not recomputed "
+                "from shard headers"
             ),
             "counts_by_storage_class": parameters,
         },
@@ -1105,9 +1224,11 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
             "api_reported_repository_artifact_bytes": {
                 "evidence_tag": "source-reproduced",
                 "source": "repository.json",
+                "verification_source": "repository.receipt.json",
                 "scope": (
                     "artifact byte counts reported by the pinned repository API "
-                    "projection; no artifact payload inspected"
+                    "projection and reproduced offline from its post-capture receipt; "
+                    "no artifact payload inspected"
                 ),
                 "weight_shard_bytes": artifacts["weight_shards"],
                 "non_weight_file_bytes": artifacts["non_weight_files"],

@@ -27,8 +27,20 @@
       "path": "repository.json",
       "sha256": "6cacae22067d225351b46d30b3b4335db18b8941e342ac24ab945d81ebef4800",
       "source_url": "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V4-Flash-0731/revision/7872f01b1d1fe23eabc4c98b48bffcef5a386062?blobs=true"
+    },
+    {
+      "bytes": 24578,
+      "derivation": "post-capture verification receipt; full response body deliberately omitted",
+      "path": "repository.receipt.json",
+      "sha256": "fb7d2406fccd6f326cef18df829457eb98ab2c61dd77a9a0436fd4a962b4bbbf",
+      "source_url": "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V4-Flash-0731/revision/7872f01b1d1fe23eabc4c98b48bffcef5a386062?blobs=true"
     }
   ],
+  "projection_verification": {
+    "capture_kind": "post-capture-api-projection-verification",
+    "receipt": "repository.receipt.json",
+    "verified_at_utc": "2026-08-08T15:49:13Z"
+  },
   "retrieval_window_utc": {
     "end": "2026-08-06T12:33:44Z",
     "start": "2026-08-06T12:24:23Z"
@@ -39,7 +51,7 @@
     "trust_remote_code": false,
     "weight_payload_bytes_read": 0
   },
-  "schema_version": 1,
+  "schema_version": 2,
   "target": {
     "evidence_level": "pinned-official-metadata",
     "repository": "deepseek-ai/DeepSeek-V4-Flash-0731",
