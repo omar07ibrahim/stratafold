@@ -333,7 +333,7 @@ class PinnedIdentityMutationTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(
-                SnapshotValidationError, "reviewed upstream blob identity drifted"
+                SnapshotValidationError, "config.json: repository.json blob cross-link drifted"
             ):
                 inspect_snapshot(root)
 
