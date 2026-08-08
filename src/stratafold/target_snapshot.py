@@ -1054,11 +1054,15 @@ def _git_blob_id(data: bytes) -> str:
 
 
 def _validate_repository_blob_cross_links(
-    files: dict[str, bytes],
+    entries: dict[str, dict[str, object]],
     repository_blob_ids: dict[str, str],
 ) -> None:
     for path, repository_path in REPOSITORY_PATHS.items():
-        if repository_blob_ids.get(repository_path) != _git_blob_id(files[path]):
+        manifest_blob_id = _str(
+            entries[path]["upstream_blob_id"],
+            f"manifest[{path}].upstream_blob_id",
+        )
+        if repository_blob_ids.get(repository_path) != manifest_blob_id:
             raise SnapshotValidationError(
                 f"{path}: repository.json blob cross-link drifted"
             )
@@ -1180,7 +1184,7 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
         repository_shards,
         artifacts["weight_shards"],
     )
-    _validate_repository_blob_cross_links(files, repository_blob_ids)
+    _validate_repository_blob_cross_links(entries, repository_blob_ids)
     try:
         projection_verification = verify_projection_bytes(
             files["repository.receipt.json"],
