@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "contract": "stratafold-m1-visual-atlas",
+  "status": "contract-only",
+  "adoption": {
+    "generated_assets_committed": false,
+    "readme_visual_claims_allowed": false,
+    "review_required_before_adoption": true
+  },
+  "deterministic_environment": {
+    "PYTHONHASHSEED": "0",
+    "LC_ALL": "C.UTF-8",
+    "LANG": "C.UTF-8",
+    "TZ": "UTC"
+  },
+  "toolchain": {
+    "python": {
+      "implementation": "CPython",
+      "version": "3.12.3",
+      "setup_python_action_sha": "5fda3b95a4ea91299a34e894583c3862153e4b97"
+    },
+    "pillow": {
+      "version": "12.3.0",
+      "wheel_filename": "pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91",
+      "install_policy": [
+        "--only-binary=:all:",
+        "--require-hashes"
+      ]
+    },
+    "default_font": {
+      "loader": "PIL.ImageFont.load_default",
+      "size": 14,
+      "family": "Aileron",
+      "style": "Regular",
+      "source": "embedded in the pinned Pillow wheel"
+    }
+  },
+  "source_inputs": [
+    {
+      "path": "evidence/raw/m1_target_genome.json",
+      "sha256": "a931facf2167616cbcba9e08787ddaaf55625913128b578e27263cf185fc0b9d",
+      "role": "validated M1 machine-readable evidence"
+    },
+    {
+      "path": "evidence/raw/m1_target_genome.txt",
+      "sha256": "962dcf208aa7043c052c2e7ff9aec17cddf5b61607740a3c19d3a5187119eeee",
+      "role": "exact verified CLI transcript"
+    },
+    {
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json",
+      "sha256": "991b2fbb9212b8dd8f49686e3e5f2b510627e4c5403d529afd54b0b7ce48474e",
+      "role": "reviewed snapshot envelope"
+    },
+    {
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/config.json",
+      "sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
+      "role": "configuration declarations and rejection mutation source"
+    },
+    {
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/model.safetensors.index.json",
+      "sha256": "98efab455cf08dfbbbaaba6f570e1bf10bf927d2b4c3c453a59c2f6f0e3be92b",
+      "role": "tensor-name and shard inventory declarations"
+    },
+    {
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.json",
+      "sha256": "6cacae22067d225351b46d30b3b4335db18b8941e342ac24ab945d81ebef4800",
+      "role": "repository API projection"
+    },
+    {
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json",
+      "sha256": "fb7d2406fccd6f326cef18df829457eb98ab2c61dd77a9a0436fd4a962b4bbbf",
+      "role": "post-capture projection verification receipt"
+    }
+  ],
+  "expected_inventory": [
+    "m1_rejection_path.json",
+    "atlas.manifest.json",
+    "m1-cli-inspect.png",
+    "m1-architecture.svg",
+    "m1-topology.svg",
+    "m1-expert-census.svg",
+    "m1-shard-inventory.svg",
+    "m1-byte-ledgers.svg",
+    "m1-parameter-classes.svg",
+    "m1-drift-boundary.svg",
+    "m1-rejection-path.gif"
+  ],
+  "assets": {
+    "m1_rejection_path.json": {
+      "kind": "actual-subprocess-rejection-record",
+      "source": [
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/config.json",
+        "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json"
+      ],
+      "claim": "same-length fp4-to-fp3 drift is rejected by config semantics before reviewed identity gates"
+    },
+    "atlas.manifest.json": {
+      "kind": "hash-manifest",
+      "rule": "bind every declared source input and every generated output except this manifest itself"
+    },
+    "m1-cli-inspect.png": {
+      "kind": "rasterized-exact-transcript",
+      "dimensions": [
+        1920,
+        3000
+      ],
+      "source": [
+        "evidence/raw/m1_target_genome.txt"
+      ],
+      "label": "EXACT VERIFIED CLI TRANSCRIPT - committed bytes; not an OS-terminal screenshot"
+    },
+    "m1-architecture.svg": {
+      "kind": "accessible-svg",
+      "view_box": "0 0 1200 675",
+      "source": [
+        "evidence/raw/m1_target_genome.json"
+      ]
+    },
+    "m1-topology.svg": {
+      "kind": "accessible-svg",
+      "view_box": "0 0 1200 675",
+      "source": [
+        "evidence/raw/m1_target_genome.json#/topology"
+      ]
+    },
+    "m1-expert-census.svg": {
+      "kind": "accessible-svg",
+      "view_box": "0 0 1200 675",
+      "source": [
+        "evidence/raw/m1_target_genome.json#/tensor_index/expert_census"
+      ]
+    },
+    "m1-shard-inventory.svg": {
+      "kind": "accessible-svg",
+      "view_box": "0 0 1200 675",
+      "source": [
+        "evidence/raw/m1_target_genome.json#/tensor_index"
+      ]
+    },
+    "m1-byte-ledgers.svg": {
+      "kind": "accessible-svg",
+      "view_box": "0 0 1200 675",
+      "source": [
+        "evidence/raw/m1_target_genome.json#/byte_ledgers"
+      ],
+      "scale": "explicit ledger comparison; inset values labeled not-to-scale where necessary"
+    },
+    "m1-parameter-classes.svg": {
+      "kind": "accessible-svg",
+      "view_box": "0 0 1200 675",
+      "source": [
+        "evidence/raw/m1_target_genome.json#/api_reported_parameter_classes"
+      ],
+      "scale": "log10(parameters) with exact numeric labels; no pie or trend encoding"
+    },
+    "m1-drift-boundary.svg": {
+      "kind": "accessible-svg",
+      "view_box": "0 0 1200 675",
+      "source": [
+        "m1_rejection_path.json"
+      ]
+    },
+    "m1-rejection-path.gif": {
+      "kind": "four-frame-rejection-record",
+      "dimensions": [
+        960,
+        540
+      ],
+      "source": [
+        "m1_rejection_path.json"
+      ],
+      "frame_durations_ms": [
+        900,
+        900,
+        900,
+        1200
+      ],
+      "flashing": false,
+      "loop": 0,
+      "palette": [
+        "#0b1220",
+        "#152238",
+        "#dbeafe",
+        "#60a5fa",
+        "#34d399",
+        "#fbbf24",
+        "#f87171",
+        "#94a3b8"
+      ]
+    }
+  },
+  "security": {
+    "host_paths_forbidden": true,
+    "timestamps_forbidden": true,
+    "png_metadata_forbidden": [
+      "exif",
+      "text",
+      "comment"
+    ],
+    "gif_metadata_forbidden": [
+      "exif",
+      "comment"
+    ],
+    "svg_forbidden": [
+      "script",
+      "external URL",
+      "foreignObject"
+    ],
+    "svg_required": [
+      "title",
+      "description",
+      "viewBox"
+    ]
+  },
+  "truth_boundary": [
+    "all quantitative labels come from committed M1 evidence or the actual rejection record",
+    "configuration declarations are not shard-header or payload observations",
+    "API-reported parameter classes are not recomputed from shard headers",
+    "the 7,998,896-byte difference is unattributed and is not compression or proven overhead",
+    "capture attestation remains unverified and hostwide state remains unaudited",
+    "the full checkpoint is NOT DOWNLOADED / NOT RUN"
+  ]
+}

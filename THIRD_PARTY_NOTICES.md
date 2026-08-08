@@ -8,7 +8,9 @@ Of the target source material, the repository commits only the reviewed bounded 
 
 Research papers, official model metadata, and official repositories are referenced for specification, comparison design, and attribution. A citation or study entry does not imply that its code was copied, linked, vendored, or executed. Source and license status are tracked in [`PROVENANCE.yaml`](PROVENANCE.yaml) and [`docs/RESEARCH_LEDGER.md`](docs/RESEARCH_LEDGER.md).
 
-The Python control plane uses only the Python standard library. The Rust runtime's dependency notices will be generated and added before its first release artifact.
+The Python control plane uses only the Python standard library. The M1 visual-atlas workflow is a separate hosted job and installs Pillow 12.3.0 solely to render review artifacts. Its exact Linux CPython 3.12 wheel is hash-locked in `requirements/visuals.txt`, is licensed under the MIT-CMU License, and is neither vendored nor added to the control-plane runtime. The Rust runtime's dependency notices will be generated and added before its first release artifact.
+
+The M1 atlas renderer creates original, source-backed diagrams, a transcript rasterization explicitly labeled as not an OS-terminal screenshot, and a four-frame rejection GIF from committed evidence plus an actual controlled CLI rejection. No third-party visual asset is incorporated. This change adopts no generated atlas files and makes no README visual claim; hosted outputs remain one-day review artifacts until a separate human-reviewed adoption change.
 
 Product-discipline prior art: `FareedKhan-dev/kimi-k3-in-c` is credited only for general lessons about visible resource checks, offline demonstrations, validation ladders, and explicit resource ledgers. StrataFold has independent architecture, terminology, code, tests, documentation, fixtures, visuals, and claims.
 

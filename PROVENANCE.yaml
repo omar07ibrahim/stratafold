@@ -25,6 +25,21 @@ boundary:
     third_party_visuals_redistributed: false
     upstream_fact_ownership_claimed: false
 sources:
+  - id: pillow-m1-visual-renderer
+    kind: hosted-render-only-build-dependency
+    url: https://pypi.org/project/Pillow/12.3.0/
+    source_url: https://github.com/python-pillow/Pillow/tree/12.3.0
+    version: 12.3.0
+    license: MIT-CMU
+    artifact:
+      filename: pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+      sha256: 78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91
+      vendored: false
+    scope:
+      dependency_free_control_plane_unchanged: true
+      hosted_visual_job_only: true
+      generated_assets_adopted: false
+    reuse: deterministic-hosted-rendering-only
   - id: deepseek-v4-flash-0731
     kind: official-model-metadata
     url: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
@@ -166,3 +181,17 @@ sources:
 generated_data:
   policy: Synthetic weights are locally generated from documented seeds and are not derived from DeepSeek weights.
   first_fixture: pending-M2
+  m1_visual_atlas:
+    status: contract-only
+    hosted_render_output: ephemeral-one-day-review-artifact
+    contract: docs/visuals/m1_atlas.spec.json
+    renderer: scripts/render_m1_atlas.py
+    actual_rejection_capture: scripts/capture_m1_rejection.py
+    generated_assets_committed: false
+    readme_visual_claims_allowed: false
+    review_required_before_adoption: true
+    source_boundary:
+      - committed canonical M1 JSON and exact CLI transcript
+      - committed reviewed metadata snapshot
+      - actual same-length fp4-to-fp3 semantic rejection record
+    third_party_visual_assets_reused: false

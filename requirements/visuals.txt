@@ -1,0 +1,8 @@
+# Hosted M1 visual-atlas job only; the dependency-free core installs nothing.
+# Exact CPython 3.12 Linux x86-64 wheel:
+# pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+--only-binary=:all:
+--require-hashes
+
+Pillow==12.3.0 \
+    --hash=sha256:78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91
