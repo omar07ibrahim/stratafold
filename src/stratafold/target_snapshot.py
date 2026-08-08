@@ -67,6 +67,10 @@ MAX_FILE_BYTES = 32 * 1024**2
 MAX_SNAPSHOT_BYTES = 128 * 1024**2
 _READ_CHUNK_BYTES = 64 * 1024
 
+REVIEWED_MANIFEST_BYTES: Final = 2_581
+REVIEWED_MANIFEST_SHA256: Final = (
+    "991b2fbb9212b8dd8f49686e3e5f2b510627e4c5403d529afd54b0b7ce48474e"
+)
 REVIEWED_FILE_IDENTITIES: Final[
     dict[str, tuple[int, str, str | None]]
 ] = {
@@ -512,7 +516,7 @@ def _load_snapshot(
     dict[str, object],
     dict[str, dict[str, object]],
     int,
-    int,
+    bytes,
 ]:
     root = Path(snapshot_dir)
     if not root.is_absolute():
@@ -575,7 +579,7 @@ def _load_snapshot(
             )
         verified[path] = data
         listed_bytes += len(data)
-    return verified, safety, entries, listed_bytes, len(manifest_bytes)
+    return verified, safety, entries, listed_bytes, manifest_bytes
 
 
 def _config_int(config: dict[str, object], key: str, expected: int) -> int:
@@ -1049,10 +1053,22 @@ def _git_blob_id(data: bytes) -> str:
     return digest.hexdigest()
 
 
+def _validate_repository_blob_cross_links(
+    files: dict[str, bytes],
+    repository_blob_ids: dict[str, str],
+) -> None:
+    for path, repository_path in REPOSITORY_PATHS.items():
+        if repository_blob_ids.get(repository_path) != _git_blob_id(files[path]):
+            raise SnapshotValidationError(
+                f"{path}: repository.json blob cross-link drifted"
+            )
+
+
 def _validate_reviewed_identities(
     files: dict[str, bytes],
     entries: dict[str, dict[str, object]],
     repository_blob_ids: dict[str, str],
+    manifest_data: bytes,
 ) -> None:
     for path in ("config.json", "model.safetensors.index.json", "LICENSE.target.txt"):
         expected_bytes, expected_sha, expected_blob = REVIEWED_FILE_IDENTITIES[path]
@@ -1130,11 +1146,20 @@ def _validate_reviewed_identities(
             "repository.receipt.json: reviewed content identity drifted"
         )
 
+    if len(manifest_data) != REVIEWED_MANIFEST_BYTES:
+        raise SnapshotValidationError(
+            "manifest.json: reviewed byte identity drifted"
+        )
+    if hashlib.sha256(manifest_data).hexdigest() != REVIEWED_MANIFEST_SHA256:
+        raise SnapshotValidationError(
+            "manifest.json: reviewed SHA-256 identity drifted"
+        )
+
 
 def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]:
     """Validate and summarize the snapshot without network or remote code."""
 
-    files, safety, entries, listed_bytes, manifest_bytes = _load_snapshot(snapshot_dir)
+    files, safety, entries, listed_bytes, manifest_data = _load_snapshot(snapshot_dir)
     topology, declared_representation = _validate_config(
         loads_json_strict(files["config.json"], label="config.json")
     )
@@ -1155,7 +1180,7 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
         repository_shards,
         artifacts["weight_shards"],
     )
-    _validate_reviewed_identities(files, entries, repository_blob_ids)
+    _validate_repository_blob_cross_links(files, repository_blob_ids)
     try:
         projection_verification = verify_projection_bytes(
             files["repository.receipt.json"],
@@ -1165,6 +1190,12 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
         raise SnapshotValidationError(
             f"repository projection verification failed: {exc}"
         ) from exc
+    _validate_reviewed_identities(
+        files,
+        entries,
+        repository_blob_ids,
+        manifest_data,
+    )
     return {
         "schema_version": 2,
         "status": "validated",
@@ -1251,8 +1282,8 @@ def inspect_snapshot(snapshot_dir: Path = DEFAULT_SNAPSHOT) -> dict[str, object]
                 "source": "manifest.json and verified local files",
                 "listed_file_count": len(files),
                 "listed_file_bytes": listed_bytes,
-                "manifest_bytes": manifest_bytes,
-                "directory_bytes": listed_bytes + manifest_bytes,
+                "manifest_bytes": len(manifest_data),
+                "directory_bytes": listed_bytes + len(manifest_data),
             },
         },
         "safety": {

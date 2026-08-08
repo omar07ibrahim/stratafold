@@ -376,6 +376,41 @@ class PinnedIdentityMutationTests(unittest.TestCase):
             ):
                 inspect_snapshot(root)
 
+    def test_format_only_manifest_drift_reaches_final_identity_gate(self) -> None:
+        with copied_snapshot() as root:
+            path = root / "manifest.json"
+            original = path.read_bytes()
+            changed = original.replace(
+                b'\n  "files"',
+                b'\n \t"files"',
+                1,
+            )
+            self.assertEqual(len(changed), len(original))
+            self.assertNotEqual(changed, original)
+            self.assertEqual(json.loads(changed), json.loads(original))
+            path.write_bytes(changed)
+            with self.assertRaisesRegex(
+                SnapshotValidationError,
+                r"manifest\.json: reviewed SHA-256 identity drifted",
+            ):
+                inspect_snapshot(root)
+
+    def test_receipt_semantics_precede_receipt_and_manifest_identity(self) -> None:
+        with copied_snapshot() as root:
+            receipt = load_json(root, "repository.receipt.json")
+            projection_input = receipt["projection_input"]
+            self.assertIsInstance(projection_input, dict)
+            projection_input["usedStorage"] += 1
+            write_json(root, "repository.receipt.json", receipt)
+            with self.assertRaisesRegex(
+                SnapshotValidationError,
+                (
+                    "repository projection verification failed: "
+                    "receipt usedStorage does not equal the LFS byte total"
+                ),
+            ):
+                inspect_snapshot(root)
+
     def test_arbitrary_non_expert_tensor_is_rejected(self) -> None:
         with copied_snapshot() as root:
             index = load_json(root, "model.safetensors.index.json")
