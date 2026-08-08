@@ -25,6 +25,8 @@ jobs:
         run: make doctor
       - name: Unit and repository policy tests
         run: make test
+      - name: Verify adopted M1 evidence
+        run: make evidence-m1-verify
       - name: Patch hygiene
         run: git diff --check
       - name: Require clean checkout before evidence capture
@@ -52,6 +54,18 @@ jobs:
             find "$RUNNER_TEMP/m1-evidence" \
               -mindepth 1 -maxdepth 1 ! -type f -print -quit
           )"
+      - name: Compare regenerated M1 evidence with committed evidence
+        run: |
+          cmp -- \
+            "$RUNNER_TEMP/m1-evidence/m1_target_genome.json" \
+            evidence/raw/m1_target_genome.json
+          cmp -- \
+            "$RUNNER_TEMP/m1-evidence/m1_target_genome.txt" \
+            evidence/raw/m1_target_genome.txt
+      - name: Require clean checkout after evidence verification
+        run: |
+          git diff --exit-code -- .
+          test -z "$(git status --short --untracked-files=all)"
       - name: Upload reviewed M1 evidence surfaces
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

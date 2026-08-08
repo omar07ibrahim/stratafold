@@ -1,0 +1,174 @@
+$ PYTHONPATH=src python3 -m stratafold inspect-target
+{
+  "api_reported_parameter_classes": {
+    "counts_by_storage_class": {
+      "BF16": 1483567488,
+      "F32": 37741630,
+      "F8_E4M3": 6304038912,
+      "I64": 2327040,
+      "I8": 296352743424,
+      "total": 304180418494
+    },
+    "evidence_tag": "source-reproduced",
+    "scope": "parameter classes reported by the pinned repository API projection and reproduced offline from its post-capture receipt; not recomputed from shard headers",
+    "source": "repository.json",
+    "verification_source": "repository.receipt.json"
+  },
+  "byte_ledgers": {
+    "api_reported_repository_artifact_bytes": {
+      "all_repository_file_bytes": 166898661074,
+      "evidence_tag": "source-reproduced",
+      "non_weight_file_bytes": 12125738,
+      "scope": "artifact byte counts reported by the pinned repository API projection and reproduced offline from its post-capture receipt; no artifact payload inspected",
+      "source": "repository.json",
+      "verification_source": "repository.receipt.json",
+      "weight_shard_bytes": 166886535336
+    },
+    "artifact_minus_index_payload_gap": {
+      "bytes": 7998896,
+      "evidence_tag": "derived",
+      "formula": "api_reported_weight_shard_bytes - index_declared_tensor_payload_bytes",
+      "scope": "unattributed metadata difference; not measured compression or proven container overhead"
+    },
+    "committed_metadata_snapshot": {
+      "directory_bytes": 5655286,
+      "evidence_tag": "measured",
+      "listed_file_bytes": 5652705,
+      "listed_file_count": 5,
+      "manifest_bytes": 2581,
+      "source": "manifest.json and verified local files"
+    },
+    "index_declared_tensor_payload": {
+      "bytes": 166878536440,
+      "evidence_tag": "source-reproduced",
+      "scope": "byte count declared by index metadata; no shard payload inspected",
+      "source": "model.safetensors.index.json"
+    }
+  },
+  "declared_representation": {
+    "declared_expert_dtype": "fp4",
+    "declared_quantization_config": {
+      "activation_scheme": "dynamic",
+      "fmt": "e4m3",
+      "quant_method": "fp8",
+      "scale_fmt": "ue8m0",
+      "weight_block_size": [
+        128,
+        128
+      ]
+    },
+    "declared_torch_dtype": "bfloat16",
+    "evidence_tag": "source-reproduced",
+    "scope": "configuration declarations only; no shard payload or header inspected",
+    "source": "config.json"
+  },
+  "evidence_level": "pinned-official-metadata",
+  "repository_projection_verification": {
+    "capture_kind": "post-capture-api-projection-verification",
+    "evidence_tag": "source-reproduced",
+    "limitations": [
+      "The full API response body is deliberately not committed.",
+      "Values of excluded fields cannot be reconstructed or audited offline from this receipt.",
+      "A later full response body, including its field and sibling sequence order, may drift while the stable projection remains unchanged.",
+      "This receipt covers repository metadata only.",
+      "No model weight, LFS object, safetensors payload, or target-side code was requested, downloaded, opened, imported, or executed during this verification.",
+      "This post-capture check verifies that selected stable fields reconstruct the earlier committed repository.json; it does not establish provenance for the original raw response used on 2026-08-06."
+    ],
+    "projection_input": {
+      "bytes": 14491,
+      "sequence_order": "captured-but-non-semantic-and-untrusted",
+      "sha256": "16dd1cea2018d8af2a84922bc6fff22a7988dbb4ecc58d9c92486fa01b178291",
+      "sibling_count": 74
+    },
+    "repository_projection": {
+      "bytes": 22284,
+      "path": "repository.json",
+      "sha256": "6cacae22067d225351b46d30b3b4335db18b8941e342ac24ab945d81ebef4800",
+      "sibling_order": "lexicographic-by-rfilename"
+    },
+    "response": {
+      "body_bytes": 16362,
+      "body_committed": false,
+      "body_sha256": "cc906889b269c1a97632ed62bfd286b304b9602219064fe37feda529e3cd119c",
+      "content_type": "application/json; charset=utf-8",
+      "date": "Sat, 08 Aug 2026 15:49:13 GMT",
+      "status": 200
+    },
+    "safety": {
+      "metadata_only": true,
+      "response_body_committed": false,
+      "target_code_imported_or_executed": false,
+      "weight_or_lfs_payload_bytes_read": 0
+    },
+    "scope": "offline reconstruction from the committed post-capture receipt; the full API response body is not committed",
+    "source": [
+      "repository.receipt.json",
+      "repository.json"
+    ],
+    "status": "verified",
+    "target": {
+      "repository": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "revision": "7872f01b1d1fe23eabc4c98b48bffcef5a386062"
+    },
+    "verification_timestamp_utc": "2026-08-08T15:49:13Z"
+  },
+  "safety": {
+    "capture_attestation": {
+      "evidence_tag": "unverified",
+      "remote_code_downloaded": false,
+      "remote_code_executed": false,
+      "scope": "capture-time statement; not an independent or hostwide audit",
+      "source": "manifest.json",
+      "trust_remote_code": false,
+      "weight_payload_bytes_read": 0
+    },
+    "decoder_observation": {
+      "evidence_tag": "measured",
+      "full_checkpoint_operation_performed": false,
+      "scope": "this invocation and snapshot only",
+      "snapshot_weight_shard_files_present": 0,
+      "target_code_imported_or_executed_by_decoder": false,
+      "weight_shard_files_opened_by_decoder": 0
+    },
+    "hostwide_download_state": "not_audited"
+  },
+  "schema_version": 2,
+  "status": "validated",
+  "target": {
+    "repository": "deepseek-ai/DeepSeek-V4-Flash-0731",
+    "revision": "7872f01b1d1fe23eabc4c98b48bffcef5a386062"
+  },
+  "tensor_index": {
+    "evidence_tag": "source-reproduced",
+    "expert_census": {
+      "attachment_routed_expert_slots": 768,
+      "attachment_routed_tensor_entries": 4608,
+      "attachment_shared_expert_slots": 3,
+      "attachment_shared_tensor_entries": 18,
+      "backbone_routed_expert_slots": 11008,
+      "backbone_routed_tensor_entries": 66048,
+      "backbone_shared_expert_slots": 43,
+      "backbone_shared_tensor_entries": 258
+    },
+    "shard_count": 48,
+    "shard_denominator": 48,
+    "source": "model.safetensors.index.json",
+    "tensor_entries": 72317
+  },
+  "topology": {
+    "dspark_target_layer_ids": [
+      40,
+      41,
+      42
+    ],
+    "evidence_tag": "source-reproduced",
+    "experts_selected_per_token": 6,
+    "hash_layers": 3,
+    "hidden_layers": 43,
+    "hidden_size": 4096,
+    "next_token_prediction_layers": 1,
+    "routed_experts_per_layer": 256,
+    "shared_experts_per_layer": 1,
+    "source": "config.json"
+  }
+}

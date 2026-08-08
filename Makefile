@@ -3,7 +3,7 @@ PYTHONPATH := $(CURDIR)/src
 M1_EVIDENCE_DIR ?= evidence/raw
 export PYTHONPATH
 
-.PHONY: doctor check repository-projection-check evidence-m0 evidence-m1 evidence-m1-check test demo report clean
+.PHONY: doctor check repository-projection-check evidence-m0 evidence-m1 evidence-m1-check evidence-m1-verify test demo report clean
 
 doctor:
 	$(PYTHON) -m stratafold doctor --workspace "$(CURDIR)"
@@ -23,10 +23,14 @@ evidence-m1: doctor
 evidence-m1-check: doctor
 	$(PYTHON) scripts/capture_m1.py --output-dir "$(M1_EVIDENCE_DIR)" --check
 
+evidence-m1-verify:
+	$(PYTHON) scripts/verify_m1_evidence.py --json
+
 test: doctor
 	$(PYTHON) -m unittest discover -s tests -v
 	$(PYTHON) scripts/check_repo.py
 	$(MAKE) repository-projection-check
+	$(MAKE) evidence-m1-verify
 
 demo: doctor
 	@echo "demo is introduced at the M2 vertical-slice gate"

@@ -1,0 +1,126 @@
+{
+  "adoption": {
+    "policy": "Only the reviewed files from the pinned successful GitHub Actions artifact were adopted after independent in-memory archive and payload verification.",
+    "source_head": "b39e31359f03021357bfa350c9cdf77b0bd24505"
+  },
+  "artifact": {
+    "archive": {
+      "bytes": 12568,
+      "committed": false,
+      "entries": [
+        {
+          "archive_entry": "m1_target_genome.json",
+          "bytes": 5674,
+          "compressed_bytes": 5674,
+          "compression_method": "stored",
+          "crc32": "566b7837",
+          "dos_datetime": [
+            2026,
+            8,
+            8,
+            16,
+            12,
+            16
+          ],
+          "sha256": "a931facf2167616cbcba9e08787ddaaf55625913128b578e27263cf185fc0b9d",
+          "unix_mode": "100644"
+        },
+        {
+          "archive_entry": "m1_target_genome.txt",
+          "bytes": 6606,
+          "compressed_bytes": 6606,
+          "compression_method": "stored",
+          "crc32": "5de42a87",
+          "dos_datetime": [
+            2026,
+            8,
+            8,
+            16,
+            12,
+            16
+          ],
+          "sha256": "962dcf208aa7043c052c2e7ff9aec17cddf5b61607740a3c19d3a5187119eeee",
+          "unix_mode": "100644"
+        }
+      ],
+      "sha256": "110e0c1d65bb4f17ee5d72f210abe8c37f0ca1538072a05caf6ad95ff94bf1d8"
+    },
+    "created_at": "2026-08-08T16:12:19Z",
+    "expired_at_adoption": false,
+    "expires_at": "2026-08-09T16:12:18Z",
+    "id": 9024264228,
+    "name": "m1-target-genome-31266366484",
+    "reported_size_bytes": 12568,
+    "updated_at": "2026-08-08T16:12:19Z"
+  },
+  "ci": {
+    "job": {
+      "completed_at": "2026-08-08T16:12:20Z",
+      "conclusion": "success",
+      "id": 93125047136,
+      "name": "dependency-free-control-plane",
+      "started_at": "2026-08-08T16:12:07Z",
+      "status": "completed"
+    },
+    "repository": {
+      "full_name": "omar07ibrahim/stratafold",
+      "id": 1321445804
+    },
+    "run": {
+      "attempt": 1,
+      "conclusion": "success",
+      "created_at": "2026-08-08T16:12:05Z",
+      "event": "pull_request",
+      "head_branch": "feat/m1-target-genome",
+      "head_sha": "b39e31359f03021357bfa350c9cdf77b0bd24505",
+      "id": 31266366484,
+      "number": 9,
+      "started_at": "2026-08-08T16:12:05Z",
+      "status": "completed",
+      "updated_at": "2026-08-08T16:12:21Z"
+    },
+    "workflow": {
+      "bytes": 2058,
+      "git_blob_id": "f4ca5765dcbd437ed1a7d711eb7f5d0cdb6d14e6",
+      "id": 326041704,
+      "name": "ci",
+      "path": ".github/workflows/ci.yml",
+      "sha256": "e317d167f6b15cacc87ef601a6a87db26972bbb304c32807add02adb5132b7e4"
+    }
+  },
+  "evidence_files": [
+    {
+      "artifact_entry": "m1_target_genome.json",
+      "bytes": 5674,
+      "path": "evidence/raw/m1_target_genome.json",
+      "sha256": "a931facf2167616cbcba9e08787ddaaf55625913128b578e27263cf185fc0b9d",
+      "unix_mode": "100644"
+    },
+    {
+      "artifact_entry": "m1_target_genome.txt",
+      "bytes": 6606,
+      "path": "evidence/raw/m1_target_genome.txt",
+      "sha256": "962dcf208aa7043c052c2e7ff9aec17cddf5b61607740a3c19d3a5187119eeee",
+      "unix_mode": "100644"
+    }
+  ],
+  "limitations": [
+    "The GitHub Actions artifact ZIP is ephemeral and is not committed; only its exact byte identity, archive structure, and adopted payload identities are recorded.",
+    "GitHub Actions run, job, and artifact provenance is CI metadata, not an independent attestation of the model, upstream API response, or capture-time host state."
+  ],
+  "schema_version": 1,
+  "source_snapshot_identities": {
+    "manifest": {
+      "bytes": 2581,
+      "git_blob_id": "1b3e823e3b9d82cf976f92307d59c21f5beb22ff",
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json",
+      "sha256": "991b2fbb9212b8dd8f49686e3e5f2b510627e4c5403d529afd54b0b7ce48474e"
+    },
+    "repository_receipt": {
+      "bytes": 24578,
+      "git_blob_id": "0644f29b0cab79a2d833163dcb74f82c943d52b6",
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json",
+      "sha256": "fb7d2406fccd6f326cef18df829457eb98ab2c61dd77a9a0436fd4a962b4bbbf"
+    }
+  }
+}
