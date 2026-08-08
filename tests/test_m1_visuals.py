@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import binascii
 import hashlib
 import importlib.util
 import inspect
 import json
 from pathlib import Path
+import re
+import stat
+import struct
 import sys
 import tempfile
 import unittest
@@ -78,6 +82,85 @@ EXPECTED_SOURCES = {
     ): "fb7d2406fccd6f326cef18df829457eb98ab2c61dd77a9a0436fd4a962b4bbbf",
 }
 
+ADOPTED_DIR = ROOT / "docs" / "assets" / "m1"
+ADOPTION_PROVENANCE_PATH = ADOPTED_DIR / "atlas.provenance.json"
+EXPECTED_ADOPTED_ENTRIES = [
+    (
+        "atlas.manifest.json",
+        "docs/assets/m1/atlas.manifest.json",
+        5384,
+        "45b0994832aacad098e12fc3849bd0e95e16831f877c2230f6535024feab8c4b",
+    ),
+    (
+        "m1-architecture.svg",
+        "docs/assets/m1/m1-architecture.svg",
+        4819,
+        "a030925950e553f9065d1eaf93e8417467d45c8b68be08e66f92407e3b9e5b27",
+    ),
+    (
+        "m1-byte-ledgers.svg",
+        "docs/assets/m1/m1-byte-ledgers.svg",
+        2921,
+        "8171f889a09c8d29a8ad416b5c26e33961ccad599abc418d165117c3b995e963",
+    ),
+    (
+        "m1-cli-inspect.png",
+        "docs/assets/m1/m1-cli-inspect.png",
+        367218,
+        "e79d875c8cc47772f67d100ecbe5a29f285b98be819758c00a78d7715e2fd991",
+    ),
+    (
+        "m1-drift-boundary.svg",
+        "docs/assets/m1/m1-drift-boundary.svg",
+        3873,
+        "3869e88126ee844d08cdf00bed7734025f2e89f926668c2b62514c66e38f71b6",
+    ),
+    (
+        "m1-expert-census.svg",
+        "docs/assets/m1/m1-expert-census.svg",
+        3381,
+        "531071a7166b9798bb75ac986601ab973a3834467c4c983fae8bb5039b8138fb",
+    ),
+    (
+        "m1-parameter-classes.svg",
+        "docs/assets/m1/m1-parameter-classes.svg",
+        3600,
+        "1e44f71de1dccb58b7832dc84009aa9a1b1a9704fb4205200cd9240bc547b707",
+    ),
+    (
+        "m1-rejection-path.gif",
+        "docs/assets/m1/m1-rejection-path.gif",
+        28395,
+        "43cf7abb9fad70f6319fd1d701dde2821794edeee8d182d3ec7bb8987d2d1d96",
+    ),
+    (
+        "m1-shard-inventory.svg",
+        "docs/assets/m1/m1-shard-inventory.svg",
+        12446,
+        "f44be207fe1b1e914713a3f5117f721e25c9c87b50b6925c4a3c1c617f9e2f70",
+    ),
+    (
+        "m1-topology.svg",
+        "docs/assets/m1/m1-topology.svg",
+        4159,
+        "8191c8a3ae2b044e87e4851deee004750b31dc5110075991b15162c96e23aadd",
+    ),
+    (
+        "m1_rejection_path.json",
+        "evidence/raw/m1_rejection_path.json",
+        2442,
+        "5918fbefde183641a6560d92358fb3924fb2ae19e3f25f168e9cfdb983380848",
+    ),
+]
+ADOPTED_PATH_BY_NAME = {
+    name: ROOT / relative
+    for name, relative, _bytes, _sha256 in EXPECTED_ADOPTED_ENTRIES
+}
+ADOPTED_HASH_BY_NAME = {
+    name: sha256
+    for name, _relative, _bytes, sha256 in EXPECTED_ADOPTED_ENTRIES
+}
+
 
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -90,8 +173,83 @@ def _load(path: Path) -> dict[str, object]:
     return value
 
 
+def _gif_sub_blocks(data: bytes, position: int) -> tuple[bytes, int]:
+    payload = bytearray()
+    while True:
+        length = data[position]
+        position += 1
+        if length == 0:
+            return bytes(payload), position
+        payload.extend(data[position:position + length])
+        position += length
+
+
+def _parse_gif(data: bytes) -> tuple[list[dict[str, object]], int, bool, int]:
+    if data[:6] != b"GIF89a":
+        raise AssertionError("adopted GIF version drifted")
+    packed = data[10]
+    position = 13
+    if packed & 0x80:
+        position += 3 * (2 ** ((packed & 0x07) + 1))
+    frames: list[dict[str, object]] = []
+    comments = 0
+    netscape_loop = False
+    graphic_control: dict[str, object] | None = None
+    while True:
+        marker = data[position]
+        position += 1
+        if marker == 0x3B:
+            return frames, comments, netscape_loop, position
+        if marker == 0x21:
+            label = data[position]
+            position += 1
+            if label == 0xF9:
+                if data[position] != 4:
+                    raise AssertionError("GIF graphic-control size drifted")
+                position += 1
+                control = data[position]
+                delay = struct.unpack("<H", data[position + 1:position + 3])[0]
+                transparency_index = data[position + 3]
+                position += 4
+                if data[position] != 0:
+                    raise AssertionError("GIF graphic-control terminator drifted")
+                position += 1
+                graphic_control = {
+                    "delay": delay,
+                    "disposal": (control >> 2) & 0x07,
+                    "transparent": bool(control & 0x01),
+                    "transparency_index": transparency_index,
+                }
+            else:
+                payload, position = _gif_sub_blocks(data, position)
+                if label == 0xFE:
+                    comments += 1
+                if label == 0xFF and payload.startswith(b"NETSCAPE2.0"):
+                    netscape_loop = True
+            continue
+        if marker != 0x2C:
+            raise AssertionError(f"unexpected GIF marker: {marker:#x}")
+        left, top, width, height = struct.unpack(
+            "<HHHH", data[position:position + 8]
+        )
+        image_packed = data[position + 8]
+        position += 9
+        if image_packed & 0x80:
+            position += 3 * (2 ** ((image_packed & 0x07) + 1))
+        position += 1
+        _payload, position = _gif_sub_blocks(data, position)
+        frames.append(
+            {
+                "rectangle": [left, top, width, height],
+                "interlaced": bool(image_packed & 0x40),
+                **(graphic_control or {}),
+            }
+        )
+        graphic_control = None
+
+
 class M1VisualContractTests(unittest.TestCase):
-    def test_contract_is_exact_and_adopts_no_generated_assets(self) -> None:
+    def test_generation_contract_preserves_pre_adoption_gate(self) -> None:
         spec = _load(SPEC_PATH)
         self.assertEqual(spec["schema_version"], 1)
         self.assertEqual(spec["contract"], "stratafold-m1-visual-atlas")
@@ -117,8 +275,11 @@ class M1VisualContractTests(unittest.TestCase):
         for name in EXPECTED_INVENTORY:
             self.assertFalse(
                 (ROOT / "docs" / "visuals" / name).exists(),
-                f"generated asset was prematurely adopted: {name}",
+                f"generator output leaked into the contract directory: {name}",
             )
+        adoption = _load(ADOPTION_PROVENANCE_PATH)
+        self.assertEqual(adoption["status"], "adopted")
+        self.assertIs(adoption["adoption"]["source_bytes_preserved_exactly"], True)
 
     def test_toolchain_dependency_and_security_contract_are_exact(self) -> None:
         spec = _load(SPEC_PATH)
@@ -317,6 +478,273 @@ class M1VisualContractTests(unittest.TestCase):
             "config.expert_dtype: expected fp4, observed",
             inspect.getsource(target_snapshot._validate_config),
         )
+
+
+
+class M1VisualAdoptionTests(unittest.TestCase):
+    def test_adoption_provenance_and_exact_inventory(self) -> None:
+        provenance = _load(ADOPTION_PROVENANCE_PATH)
+        self.assertEqual(provenance["schema_version"], 1)
+        self.assertEqual(
+            provenance["record"],
+            "stratafold-m1-visual-atlas-adoption",
+        )
+        self.assertEqual(provenance["status"], "adopted")
+        self.assertEqual(
+            provenance["adoption"],
+            {
+                "committed_asset_count": 11,
+                "readme_source_backed_placements": True,
+                "review_completed": True,
+                "source_archive_ephemeral": True,
+                "source_bytes_preserved_exactly": True,
+            },
+        )
+        source = provenance["source"]
+        self.assertEqual(
+            (
+                source["head_commit"],
+                source["head_tree"],
+                source["workflow_checkout_commit"],
+                source["workflow_checkout_tree"],
+                source["checkout_tree_matches_head_tree"],
+            ),
+            (
+                "97365f0e7cd06653f5bfa2bdd1e93874e5d232ed",
+                "79b5fbf81a3cef4a8868eaf3a9c02b0f62bbe8cd",
+                "33054d481cc271da2aea7aa042ee55ce914062a9",
+                "79b5fbf81a3cef4a8868eaf3a9c02b0f62bbe8cd",
+                True,
+            ),
+        )
+        self.assertEqual(
+            source["workflow"],
+            {
+                "conclusion": "success",
+                "event": "pull_request",
+                "job_conclusion": "success",
+                "job_id": 93132565296,
+                "job_name": "m1-visual-atlas",
+                "path": ".github/workflows/ci.yml",
+                "run_attempt": 1,
+                "run_id": 31269327344,
+                "status": "completed",
+            },
+        )
+        artifact = source["artifact"]
+        self.assertEqual(artifact["id"], 9025118461)
+        self.assertEqual(artifact["name"], "m1-visual-atlas-31269327344")
+        self.assertEqual(artifact["api_size_bytes"], 440112)
+        self.assertEqual(artifact["streamed_archive_bytes"], 440112)
+        self.assertEqual(
+            artifact["api_digest"],
+            "sha256:"
+            "42903c22d1d628f2df2f089e0e196b7aacb75a4b66205203c96509f160f73d88",
+        )
+        self.assertEqual(
+            artifact["streamed_archive_sha256"],
+            "42903c22d1d628f2df2f089e0e196b7aacb75a4b66205203c96509f160f73d88",
+        )
+        self.assertEqual(artifact["retention_days"], 1)
+        self.assertEqual(artifact["expires_at_utc"], "2026-08-09T17:24:53Z")
+
+        expected_entries = [
+            {
+                "adopted_path": relative,
+                "bytes": size,
+                "compression": "ZIP_STORED",
+                "mode": "100644",
+                "name": name,
+                "sha256": sha256,
+            }
+            for name, relative, size, sha256 in EXPECTED_ADOPTED_ENTRIES
+        ]
+        self.assertEqual(provenance["entries"], expected_entries)
+        expected_docs = {
+            Path(relative).name
+            for _name, relative, _size, _sha256 in EXPECTED_ADOPTED_ENTRIES
+            if relative.startswith("docs/assets/m1/")
+        } | {"atlas.provenance.json"}
+        self.assertEqual(
+            {path.name for path in ADOPTED_DIR.iterdir()},
+            expected_docs,
+        )
+        for name, _relative, size, sha256 in EXPECTED_ADOPTED_ENTRIES:
+            path = ADOPTED_PATH_BY_NAME[name]
+            self.assertFalse(path.is_symlink(), name)
+            metadata = path.stat()
+            self.assertTrue(stat.S_ISREG(metadata.st_mode), name)
+            self.assertEqual(stat.S_IMODE(metadata.st_mode), 0o644, name)
+            data = path.read_bytes()
+            self.assertEqual(len(data), size, name)
+            self.assertEqual(_sha(data), sha256, name)
+
+        spec = _load(SPEC_PATH)
+        self.assertEqual(provenance["toolchain"], spec["toolchain"])
+        review = provenance["review"]
+        self.assertEqual(len(review["methods_results"]), 7)
+        self.assertIn(
+            "no personal or cryptographic reviewer attestation",
+            review["identity_policy"],
+        )
+
+    def test_preserved_manifest_binds_adopted_outputs_without_self_reference(
+        self,
+    ) -> None:
+        manifest_path = ADOPTED_PATH_BY_NAME["atlas.manifest.json"]
+        manifest_data = manifest_path.read_bytes()
+        manifest = json.loads(manifest_data)
+        self.assertEqual(manifest["status"], "generated-not-adopted")
+        self.assertEqual(
+            manifest["adoption"],
+            {
+                "generated_assets_committed": False,
+                "readme_visual_claims_allowed": False,
+                "review_required_before_adoption": True,
+            },
+        )
+        self.assertEqual(len(manifest["inputs"]), 9)
+        self.assertEqual(len(manifest["outputs"]), 10)
+        self.assertNotIn(
+            MANIFEST_NAME,
+            {binding["path"] for binding in manifest["outputs"]},
+        )
+        self.assertEqual(
+            [binding["path"] for binding in manifest["outputs"]],
+            [name for name in EXPECTED_INVENTORY if name != MANIFEST_NAME],
+        )
+        for binding in manifest["outputs"]:
+            data = ADOPTED_PATH_BY_NAME[binding["path"]].read_bytes()
+            self.assertEqual(binding["bytes"], len(data))
+            self.assertEqual(binding["sha256"], _sha(data))
+        for binding in manifest["inputs"]:
+            if binding["path"] == "$ATLAS_OUTPUT/m1_rejection_path.json":
+                path = ADOPTED_PATH_BY_NAME["m1_rejection_path.json"]
+            else:
+                path = ROOT / binding["path"]
+            data = path.read_bytes()
+            self.assertEqual(binding["bytes"], len(data))
+            self.assertEqual(binding["sha256"], _sha(data))
+
+        provenance = _load(ADOPTION_PROVENANCE_PATH)
+        preserved = provenance["preserved_generator_manifest"]
+        self.assertEqual(preserved["bytes"], len(manifest_data))
+        self.assertEqual(preserved["sha256"], _sha(manifest_data))
+        self.assertEqual(
+            preserved["artifact_time_status"],
+            "generated-not-adopted",
+        )
+        self.assertIn("preserved byte-for-byte", preserved["interpretation"])
+
+    def test_adopted_media_structure_and_security(self) -> None:
+        png = ADOPTED_PATH_BY_NAME["m1-cli-inspect.png"].read_bytes()
+        self.assertEqual(png[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(struct.unpack(">II", png[16:24]), (1920, 3000))
+        position = 8
+        chunks: list[str] = []
+        while True:
+            length = struct.unpack(">I", png[position:position + 4])[0]
+            kind = png[position + 4:position + 8]
+            payload = png[position + 8:position + 8 + length]
+            observed_crc = struct.unpack(
+                ">I",
+                png[position + 8 + length:position + 12 + length],
+            )[0]
+            self.assertEqual(
+                binascii.crc32(kind + payload) & 0xFFFFFFFF,
+                observed_crc,
+            )
+            chunks.append(kind.decode("ascii"))
+            position += 12 + length
+            if kind == b"IEND":
+                break
+        self.assertEqual(position, len(png))
+        self.assertEqual(
+            chunks,
+            ["IHDR", "IDAT", "IDAT", "IDAT", "IDAT", "IDAT", "IDAT", "IEND"],
+        )
+
+        gif = ADOPTED_PATH_BY_NAME["m1-rejection-path.gif"].read_bytes()
+        self.assertEqual(struct.unpack("<HH", gif[6:10]), (960, 540))
+        frames, comments, netscape_loop, final_position = _parse_gif(gif)
+        self.assertEqual(final_position, len(gif))
+        self.assertEqual(len(frames), 4)
+        self.assertEqual([frame["delay"] for frame in frames], [90, 90, 90, 120])
+        for frame in frames:
+            self.assertEqual(frame["rectangle"], [0, 0, 960, 540])
+            self.assertIs(frame["interlaced"], False)
+            self.assertEqual(frame["disposal"], 2)
+            self.assertIs(frame["transparent"], False)
+        self.assertEqual(comments, 0)
+        self.assertIs(netscape_loop, True)
+
+        for name in SVG_NAMES:
+            data = ADOPTED_PATH_BY_NAME[name].read_bytes()
+            lowered = data.lower()
+            for token in (
+                b"<script",
+                b"foreignobject",
+                b"href=",
+                b"http://",
+                b"https://",
+            ):
+                self.assertNotIn(token, lowered, name)
+            root = ET.fromstring(data)
+            self.assertEqual(root.tag, "svg")
+            self.assertEqual(root.attrib["viewBox"], "0 0 1200 675")
+            self.assertTrue(root.find("title").text)
+            self.assertTrue(root.find("desc").text)
+
+        joined = b"\n".join(
+            ADOPTED_PATH_BY_NAME[name].read_bytes()
+            for name, _relative, _size, _sha256 in EXPECTED_ADOPTED_ENTRIES
+        )
+        forbidden = (
+            rb"/home/(?:runner|ubuntu|omar)/",
+            rb"/tmp/",
+            rb"github_pat_[A-Za-z0-9_]{20,}",
+            rb"gh[opsu]_[A-Za-z0-9]{20,}",
+            rb"hf_[A-Za-z0-9]{20,}",
+            rb"sk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{20,}",
+            rb"(?:AKIA|ASIA)[A-Z0-9]{16}",
+        )
+        for pattern in forbidden:
+            self.assertIsNone(re.search(pattern, joined), pattern)
+
+        rejection = _load(ADOPTED_PATH_BY_NAME["m1_rejection_path.json"])
+        self.assertEqual(rejection["invocation"]["returncode"], 2)
+        self.assertEqual(rejection["invocation"]["stdout"]["bytes"], 0)
+        self.assertEqual(
+            rejection["invocation"]["stderr"]["json"],
+            {"error": EXPECTED_ERROR, "status": "rejected"},
+        )
+        self.assertIs(
+            rejection["gate_result"]["reviewed_identity_gates_reached"],
+            False,
+        )
+
+    def test_readme_and_atlas_document_the_visual_truth_boundary(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        atlas_doc = (
+            ROOT / "docs" / "M1_VISUAL_ATLAS.md"
+        ).read_text(encoding="utf-8")
+        for relative in (
+            "docs/assets/m1/m1-architecture.svg",
+            "docs/assets/m1/m1-cli-inspect.png",
+            "docs/assets/m1/m1-topology.svg",
+            "docs/assets/m1/m1-byte-ledgers.svg",
+            "docs/assets/m1/m1-rejection-path.gif",
+            "docs/assets/m1/m1-drift-boundary.svg",
+            "evidence/raw/m1_target_genome.provenance.json",
+        ):
+            self.assertIn(relative, readme)
+        self.assertIn("not an OS-terminal screenshot", readme)
+        self.assertIn("not an upstream incident", readme)
+        self.assertIn("NOT DOWNLOADED / NOT RUN", readme)
+        self.assertIn("generated-not-adopted", atlas_doc)
+        self.assertIn("preserved byte-for-byte", atlas_doc)
+        self.assertIn("not an upstream incident", atlas_doc)
+        self.assertIn("NOT DOWNLOADED / NOT RUN", atlas_doc)
 
 
 @unittest.skipUnless(

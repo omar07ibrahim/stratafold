@@ -6,6 +6,10 @@ StrataFold is an independent clean-room laboratory for **structural Mixture-of-E
 
 The target baseline is described from bounded official metadata. Its config declares `expert_dtype=fp4`, `torch_dtype=bfloat16`, and an FP8 `e4m3` quantization configuration. These are configuration declarations—not shard-header or payload observations. StrataFold does not call the target unquantized and does not count a dtype or bit-width change as structural compression.
 
+[![M1 evidence architecture](docs/assets/m1/m1-architecture.svg)](docs/M1_VISUAL_ATLAS.md)
+
+*The adopted M1 architecture view is source-backed by committed metadata and exact evidence surfaces. It does not represent a checkpoint run or a compression result.*
+
 ## Validated M1 target genome
 
 M1 is now a validated, pinned-official-metadata snapshot:
@@ -16,16 +20,31 @@ M1 is now a validated, pinned-official-metadata snapshot:
 - **API-reported parameter classes:** 304,180,418,494 total, reproduced from the committed receipt and not recomputed from shard headers.
 - **Derived difference:** 7,998,896 bytes between API-reported weight-shard bytes and index-declared tensor payload bytes. It is unattributed metadata—not measured compression or proven container overhead.
 
+| Declared topology | Separate byte ledgers |
+| --- | --- |
+| [![Declared M1 topology](docs/assets/m1/m1-topology.svg)](docs/M1_VISUAL_ATLAS.md#source-backed-gallery) | [![M1 byte ledgers](docs/assets/m1/m1-byte-ledgers.svg)](docs/M1_VISUAL_ATLAS.md#source-backed-gallery) |
+| [source-reproduced] configuration declarations only | [source-reproduced] API/index totals; the [derived] inset is explicitly not to scale |
+
 Evidence surfaces are committed directly:
 
 - [raw M1 JSON](evidence/raw/m1_target_genome.json)
 - [raw M1 CLI transcript](evidence/raw/m1_target_genome.txt)
-- [provenance ledger](PROVENANCE.yaml)
+- [raw M1 capture provenance](evidence/raw/m1_target_genome.provenance.json)
+- [deliberate rejection record](evidence/raw/m1_rejection_path.json)
+- [project provenance ledger](PROVENANCE.yaml)
 - [snapshot manifest](metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json)
 - [repository projection receipt](metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json)
 - [claim registry](CLAIMS.json)
 
 Every quantitative claim is registered in `CLAIMS.json` with an allowed evidence tag, exact committed evidence paths, and a reproduce command.
+
+<a href="evidence/raw/m1_target_genome.txt">
+  <img src="docs/assets/m1/m1-cli-inspect.png" width="820" alt="Rasterized exact verified M1 CLI transcript; not an OS-terminal screenshot">
+</a>
+
+*Rasterized exact verified CLI transcript — this is not an OS-terminal screenshot. The image links to the exact committed text bytes.*
+
+The [full visual atlas](docs/M1_VISUAL_ATLAS.md) documents every caption and evidence boundary. Remaining focused views: [expert census](docs/assets/m1/m1-expert-census.svg), [48-shard inventory](docs/assets/m1/m1-shard-inventory.svg), [API-reported parameter classes](docs/assets/m1/m1-parameter-classes.svg), [generator manifest](docs/assets/m1/atlas.manifest.json), and [adoption provenance](docs/assets/m1/atlas.provenance.json).
 
 ## Setup and verification
 
@@ -41,7 +60,7 @@ make evidence-m1-verify
 PYTHONPATH=src python3 -m stratafold inspect-target
 ```
 
-`make doctor` enforces the workspace, cache, object-size, revision, and metadata-only request boundaries before any evidence command runs. `make evidence-m1-check` reconstructs the expected target-genome surfaces in memory and compares them byte-for-byte without rewriting; `make evidence-m1-verify` validates the adopted evidence identities and semantics.
+`make doctor` enforces the workspace, cache, object-size, revision, and metadata-only request boundaries before any evidence command runs. `make evidence-m1-check` reconstructs the expected target-genome surfaces in memory and compares them byte-for-byte without rewriting; `make evidence-m1-verify` validates the adopted evidence identities and semantics. The separate hosted visual job renders twice and runs `make visuals-m1-verify-adopted` to compare all eleven generated files with the committed atlas.
 
 ## Evidence status and safety
 
@@ -52,6 +71,14 @@ Evidence labels remain deliberately separate:
 - `[measured]` the validated decoder invocation found zero shard files in the snapshot, opened zero shard files, executed no target code, and performed no full-checkpoint operation;
 - `[unverified]` the capture-time attestation is not an independent audit, and the hostwide download state is unaudited;
 - `[not-run]` the full checkpoint is **NOT DOWNLOADED / NOT RUN** for the M1 project record.
+
+![Four-frame deliberate M1 rejection path](docs/assets/m1/m1-rejection-path.gif)
+
+*Deliberate validation experiment — a temporary copied snapshot changes the same-length token `config.expert_dtype: fp4 → fp3`, refreshes the manifest config entry, and the real CLI rejects it. This is not an upstream incident.*
+
+[![M1 drift boundary](docs/assets/m1/m1-drift-boundary.svg)](docs/M1_VISUAL_ATLAS.md#deliberate-rejection-path)
+
+*The semantic rejection occurs before reviewed identity gates; its exact canonical stderr and hashes are committed in the rejection record.*
 
 This host supports generated micro-checkpoints and metadata-only validation. No M1 result is a compression-ratio, quality, throughput, active-compute, performance, or state-of-the-art claim.
 

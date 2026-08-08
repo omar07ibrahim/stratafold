@@ -1,0 +1,77 @@
+{
+  "experiment": "m1-same-length-config-semantic-rejection",
+  "gate_result": {
+    "classification": "config-semantic-validation",
+    "manifest_integrity_gate": "passed-after-config-entry-refresh",
+    "reason": "config.expert_dtype: expected fp4, observed fp3",
+    "reviewed_identity_gates_reached": false,
+    "semantic_gate": "rejected"
+  },
+  "invocation": {
+    "command": [
+      "python3",
+      "-m",
+      "stratafold",
+      "inspect-target",
+      "--snapshot",
+      "$MUTATED_SNAPSHOT",
+      "--json"
+    ],
+    "returncode": 2,
+    "stderr": {
+      "bytes": 83,
+      "canonical_text": "{\"error\": \"config.expert_dtype: expected fp4, observed fp3\", \"status\": \"rejected\"}\n",
+      "json": {
+        "error": "config.expert_dtype: expected fp4, observed fp3",
+        "status": "rejected"
+      },
+      "sha256": "fee3cdd0857919149d4cd7185c2b79e6d486e1387119054202b528d7b8cfc7b5"
+    },
+    "stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    }
+  },
+  "mutation": {
+    "config_after": {
+      "bytes": 1888,
+      "sha256": "effc366a23945704d926ff35dc0fed0e304f36544a3944d1c66bbc5697b6cb55"
+    },
+    "config_before": {
+      "bytes": 1888,
+      "sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023"
+    },
+    "field": "config.expert_dtype",
+    "from": "fp4",
+    "refreshed_manifest": {
+      "bytes": 2581,
+      "config_entry_bytes": 1888,
+      "config_entry_sha256": "effc366a23945704d926ff35dc0fed0e304f36544a3944d1c66bbc5697b6cb55",
+      "sha256": "eb90638596fa3efb0dea478db6e27ffe06279c6c807adf66b479c8e306993619"
+    },
+    "same_length": true,
+    "to": "fp3"
+  },
+  "schema_version": 1,
+  "security": {
+    "host_paths_recorded": false,
+    "network_used": false,
+    "target_code_imported_or_executed": false,
+    "timestamps_recorded": false,
+    "weight_or_lfs_payload_bytes_read": 0
+  },
+  "source_snapshot": {
+    "config_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
+    "copied_files": [
+      "manifest.json",
+      "config.json",
+      "model.safetensors.index.json",
+      "LICENSE.target.txt",
+      "repository.json",
+      "repository.receipt.json"
+    ],
+    "logical_path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062",
+    "manifest_sha256": "991b2fbb9212b8dd8f49686e3e5f2b510627e4c5403d529afd54b0b7ce48474e"
+  }
+}

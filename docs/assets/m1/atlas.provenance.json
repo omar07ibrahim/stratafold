@@ -1,0 +1,212 @@
+{
+  "adoption": {
+    "committed_asset_count": 11,
+    "readme_source_backed_placements": true,
+    "review_completed": true,
+    "source_archive_ephemeral": true,
+    "source_bytes_preserved_exactly": true
+  },
+  "entries": [
+    {
+      "adopted_path": "docs/assets/m1/atlas.manifest.json",
+      "bytes": 5384,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "atlas.manifest.json",
+      "sha256": "45b0994832aacad098e12fc3849bd0e95e16831f877c2230f6535024feab8c4b"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-architecture.svg",
+      "bytes": 4819,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-architecture.svg",
+      "sha256": "a030925950e553f9065d1eaf93e8417467d45c8b68be08e66f92407e3b9e5b27"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-byte-ledgers.svg",
+      "bytes": 2921,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-byte-ledgers.svg",
+      "sha256": "8171f889a09c8d29a8ad416b5c26e33961ccad599abc418d165117c3b995e963"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-cli-inspect.png",
+      "bytes": 367218,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-cli-inspect.png",
+      "sha256": "e79d875c8cc47772f67d100ecbe5a29f285b98be819758c00a78d7715e2fd991"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-drift-boundary.svg",
+      "bytes": 3873,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-drift-boundary.svg",
+      "sha256": "3869e88126ee844d08cdf00bed7734025f2e89f926668c2b62514c66e38f71b6"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-expert-census.svg",
+      "bytes": 3381,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-expert-census.svg",
+      "sha256": "531071a7166b9798bb75ac986601ab973a3834467c4c983fae8bb5039b8138fb"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-parameter-classes.svg",
+      "bytes": 3600,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-parameter-classes.svg",
+      "sha256": "1e44f71de1dccb58b7832dc84009aa9a1b1a9704fb4205200cd9240bc547b707"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-rejection-path.gif",
+      "bytes": 28395,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-rejection-path.gif",
+      "sha256": "43cf7abb9fad70f6319fd1d701dde2821794edeee8d182d3ec7bb8987d2d1d96"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-shard-inventory.svg",
+      "bytes": 12446,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-shard-inventory.svg",
+      "sha256": "f44be207fe1b1e914713a3f5117f721e25c9c87b50b6925c4a3c1c617f9e2f70"
+    },
+    {
+      "adopted_path": "docs/assets/m1/m1-topology.svg",
+      "bytes": 4159,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1-topology.svg",
+      "sha256": "8191c8a3ae2b044e87e4851deee004750b31dc5110075991b15162c96e23aadd"
+    },
+    {
+      "adopted_path": "evidence/raw/m1_rejection_path.json",
+      "bytes": 2442,
+      "compression": "ZIP_STORED",
+      "mode": "100644",
+      "name": "m1_rejection_path.json",
+      "sha256": "5918fbefde183641a6560d92358fb3924fb2ae19e3f25f168e9cfdb983380848"
+    }
+  ],
+  "limits_and_nonclaims": [
+    "The source ZIP was a one-day CI review artifact and may no longer be downloadable after its recorded expiry.",
+    "The preserved generator manifest describes the pre-adoption gate and therefore intentionally says generated-not-adopted.",
+    "The CLI PNG is a rasterization of the exact verified committed transcript, not an OS-terminal screenshot.",
+    "The rejection GIF records a deliberate same-length config.expert_dtype fp4-to-fp3 mutation in a temporary copied snapshot; it is not an upstream incident.",
+    "Configuration values are declarations, not shard-header or payload observations.",
+    "The 7,998,896-byte difference is unattributed and is not compression or proven overhead.",
+    "The capture attestation remains unverified and the hostwide download state remains unaudited.",
+    "The full checkpoint is NOT DOWNLOADED / NOT RUN."
+  ],
+  "preserved_generator_manifest": {
+    "adopted_path": "docs/assets/m1/atlas.manifest.json",
+    "artifact_entry": "atlas.manifest.json",
+    "artifact_time_adoption": {
+      "generated_assets_committed": false,
+      "readme_visual_claims_allowed": false,
+      "review_required_before_adoption": true
+    },
+    "artifact_time_status": "generated-not-adopted",
+    "bytes": 5384,
+    "interpretation": "These fields record the pre-adoption review gate. The manifest is preserved byte-for-byte; this adoption provenance record, not a mutation of reviewed bytes, records the later adoption.",
+    "sha256": "45b0994832aacad098e12fc3849bd0e95e16831f877c2230f6535024feab8c4b"
+  },
+  "record": "stratafold-m1-visual-atlas-adoption",
+  "review": {
+    "identity_policy": "methods and observed results only; no personal or cryptographic reviewer attestation",
+    "methods_results": [
+      {
+        "method": "run, job, and artifact API identity reconciliation",
+        "result": "IDs, successful conclusions, source head, artifact name, byte size, digest, and one-day expiry matched the adoption request."
+      },
+      {
+        "method": "streamed archive hashing and ZIP central-directory inspection",
+        "result": "Archive SHA-256 matched the API digest; exactly 11 regular 100644 ZIP_STORED entries matched the declared inventory, byte lengths, and SHA-256 values."
+      },
+      {
+        "method": "generator-manifest binding verification",
+        "result": "Nine inputs and ten outputs were hash-bound; the manifest did not bind itself; every adopted output matched its binding."
+      },
+      {
+        "method": "PNG chunk and decoded-pixel inspection",
+        "result": "The 1920x3000 PNG contained only IHDR, six IDAT chunks, and IEND with valid CRCs and no trailing bytes or metadata. Its visible header identifies an exact verified transcript and explicitly says it is not an OS-terminal screenshot."
+      },
+      {
+        "method": "GIF block parser and decoded first-frame inspection",
+        "result": "The GIF89a asset is 960x540 with four full-canvas noninterlaced frames, 90/90/90/120 centisecond delays, disposal method 2, no transparency or comments, a NETSCAPE loop extension, and an exact trailer. The inspected first frame clearly labels 1/4 copied source and an actual deterministic record."
+      },
+      {
+        "method": "SVG XML, accessibility, text-label, and active-content inspection",
+        "result": "All seven SVGs had a title, description, and viewBox; their visible labels matched the bounded evidence and nonclaims; no href, script, external URL, or foreignObject was present."
+      },
+      {
+        "method": "forbidden host-path, active-content, and secret-pattern scan",
+        "result": "Zero matches across all eleven entries."
+      }
+    ]
+  },
+  "schema_version": 1,
+  "source": {
+    "artifact": {
+      "api_digest": "sha256:42903c22d1d628f2df2f089e0e196b7aacb75a4b66205203c96509f160f73d88",
+      "api_size_bytes": 440112,
+      "archive_availability": "ephemeral; committed adopted bytes are the durable record",
+      "created_at_utc": "2026-08-08T17:24:54Z",
+      "expires_at_utc": "2026-08-09T17:24:53Z",
+      "id": 9025118461,
+      "name": "m1-visual-atlas-31269327344",
+      "retention_days": 1,
+      "streamed_archive_bytes": 440112,
+      "streamed_archive_sha256": "42903c22d1d628f2df2f089e0e196b7aacb75a4b66205203c96509f160f73d88"
+    },
+    "checkout_tree_matches_head_tree": true,
+    "head_commit": "97365f0e7cd06653f5bfa2bdd1e93874e5d232ed",
+    "head_tree": "79b5fbf81a3cef4a8868eaf3a9c02b0f62bbe8cd",
+    "repository": "omar07ibrahim/StrataFold",
+    "workflow": {
+      "conclusion": "success",
+      "event": "pull_request",
+      "job_conclusion": "success",
+      "job_id": 93132565296,
+      "job_name": "m1-visual-atlas",
+      "path": ".github/workflows/ci.yml",
+      "run_attempt": 1,
+      "run_id": 31269327344,
+      "status": "completed"
+    },
+    "workflow_checkout_commit": "33054d481cc271da2aea7aa042ee55ce914062a9",
+    "workflow_checkout_tree": "79b5fbf81a3cef4a8868eaf3a9c02b0f62bbe8cd"
+  },
+  "status": "adopted",
+  "toolchain": {
+    "default_font": {
+      "family": "Aileron",
+      "loader": "PIL.ImageFont.load_default",
+      "size": 14,
+      "source": "embedded in the pinned Pillow wheel",
+      "style": "Regular"
+    },
+    "pillow": {
+      "install_policy": [
+        "--only-binary=:all:",
+        "--require-hashes"
+      ],
+      "version": "12.3.0",
+      "wheel_filename": "pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91"
+    },
+    "python": {
+      "implementation": "CPython",
+      "setup_python_action_sha": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "version": "3.12.3"
+    }
+  }
+}

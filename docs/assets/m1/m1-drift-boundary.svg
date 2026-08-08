@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1200 675" role="img" aria-labelledby="atlas-title atlas-description">
+<title id="atlas-title">Actual M1 drift boundary</title>
+<desc id="atlas-description">The exact copied-snapshot mutation, refreshed manifest integrity, and actual CLI semantic rejection.</desc>
+<rect x="0" y="0" width="1200" height="675" rx="0" fill="#0b1220"/>
+<text x="60" y="62" fill="#dbeafe" font-family="sans-serif" font-size="34" font-weight="700" text-anchor="start">Actual M1 drift boundary</text>
+<text x="60" y="94" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">A copied snapshot is changed by one same-length token, then inspected by the real CLI.</text>
+<line x1="60" y1="114" x2="1140" y2="114" stroke="#152238" stroke-width="2"/>
+<rect x="60" y="165" width="245" height="245" rx="12" fill="#152238" stroke="#60a5fa" stroke-width="2"/>
+<text x="78" y="205" fill="#60a5fa" font-family="sans-serif" font-size="18" font-weight="700" text-anchor="start">1 · copied source</text>
+<text x="78" y="270" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">expert_dtype = &quot;fp4&quot;</text>
+<text x="78" y="320" fill="#94a3b8" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="start">1,888 config bytes</text>
+<rect x="335" y="165" width="245" height="245" rx="12" fill="#152238" stroke="#fbbf24" stroke-width="2"/>
+<text x="353" y="205" fill="#fbbf24" font-family="sans-serif" font-size="18" font-weight="700" text-anchor="start">2 · semantic drift</text>
+<text x="353" y="270" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">expert_dtype = &quot;fp3&quot;</text>
+<text x="353" y="320" fill="#94a3b8" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="start">1,888 config bytes · same length</text>
+<rect x="610" y="165" width="245" height="245" rx="12" fill="#152238" stroke="#34d399" stroke-width="2"/>
+<text x="628" y="205" fill="#34d399" font-family="sans-serif" font-size="18" font-weight="700" text-anchor="start">3 · integrity refreshed</text>
+<text x="628" y="270" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">manifest config entry</text>
+<text x="628" y="320" fill="#94a3b8" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="start">1,888 bytes + new SHA-256</text>
+<rect x="885" y="165" width="245" height="245" rx="12" fill="#152238" stroke="#f87171" stroke-width="2"/>
+<text x="903" y="205" fill="#f87171" font-family="sans-serif" font-size="18" font-weight="700" text-anchor="start">4 · actual rejection</text>
+<text x="903" y="270" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">process return code 2</text>
+<text x="903" y="320" fill="#94a3b8" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="start">stdout = 0 bytes</text>
+<line x1="305" y1="287" x2="335" y2="287" stroke="#94a3b8" stroke-width="3"/>
+<line x1="580" y1="287" x2="610" y2="287" stroke="#94a3b8" stroke-width="3"/>
+<line x1="855" y1="287" x2="885" y2="287" stroke="#94a3b8" stroke-width="3"/>
+<rect x="60" y="455" width="1070" height="120" rx="12" fill="#152238" stroke="#f87171" stroke-width="2"/>
+<text x="85" y="495" fill="#94a3b8" font-family="sans-serif" font-size="18" font-weight="400" text-anchor="start">Canonical stderr from actual inspect-target --json subprocess:</text>
+<text x="85" y="535" fill="#f87171" font-family="sans-serif" font-size="23" font-weight="700" text-anchor="start">config.expert_dtype: expected fp4, observed fp3</text>
+<text x="60" y="622" fill="#fbbf24" font-family="sans-serif" font-size="22" font-weight="700" text-anchor="start">Rejected at config semantics before reviewed identity gates.</text>
+</svg>

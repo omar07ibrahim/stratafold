@@ -38,7 +38,7 @@ sources:
     scope:
       dependency_free_control_plane_unchanged: true
       hosted_visual_job_only: true
-      generated_assets_adopted: false
+      generated_assets_adopted: true
     reuse: deterministic-hosted-rendering-only
   - id: deepseek-v4-flash-0731
     kind: official-model-metadata
@@ -182,14 +182,25 @@ generated_data:
   policy: Synthetic weights are locally generated from documented seeds and are not derived from DeepSeek weights.
   first_fixture: pending-M2
   m1_visual_atlas:
-    status: contract-only
+    status: adopted-after-bounded-review
     hosted_render_output: ephemeral-one-day-review-artifact
-    contract: docs/visuals/m1_atlas.spec.json
+    generation_contract: docs/visuals/m1_atlas.spec.json
+    preserved_generator_manifest: docs/assets/m1/atlas.manifest.json
+    adoption_record: docs/assets/m1/atlas.provenance.json
+    atlas_document: docs/M1_VISUAL_ATLAS.md
     renderer: scripts/render_m1_atlas.py
     actual_rejection_capture: scripts/capture_m1_rejection.py
-    generated_assets_committed: false
-    readme_visual_claims_allowed: false
-    review_required_before_adoption: true
+    adopted_rejection_record: evidence/raw/m1_rejection_path.json
+    source_artifact:
+      run_id: 31269327344
+      job_id: 93132565296
+      artifact_id: 9025118461
+      archive_sha256: 42903c22d1d628f2df2f089e0e196b7aacb75a4b66205203c96509f160f73d88
+    generated_assets_committed: true
+    readme_source_backed_placements: true
+    review_required_before_adoption: satisfied
+    generator_manifest_boundary: the byte-exact manifest retains its pre-adoption generated-not-adopted fields
+    replay_policy: hosted CI renders twice and compares both exact inventories with the adopted files
     source_boundary:
       - committed canonical M1 JSON and exact CLI transcript
       - committed reviewed metadata snapshot

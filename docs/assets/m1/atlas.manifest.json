@@ -1,0 +1,156 @@
+{
+  "adoption": {
+    "generated_assets_committed": false,
+    "readme_visual_claims_allowed": false,
+    "review_required_before_adoption": true
+  },
+  "contract": "stratafold-m1-visual-atlas-manifest",
+  "deterministic_environment": {
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "PYTHONHASHSEED": "0",
+    "TZ": "UTC"
+  },
+  "inputs": [
+    {
+      "bytes": 6994,
+      "path": "docs/visuals/m1_atlas.spec.json",
+      "sha256": "3ca23b1414a87d6330bfd18da36d6ab4ac2f25664d58e38bfb2d7c55e7424ec9"
+    },
+    {
+      "bytes": 5674,
+      "path": "evidence/raw/m1_target_genome.json",
+      "sha256": "a931facf2167616cbcba9e08787ddaaf55625913128b578e27263cf185fc0b9d"
+    },
+    {
+      "bytes": 6606,
+      "path": "evidence/raw/m1_target_genome.txt",
+      "sha256": "962dcf208aa7043c052c2e7ff9aec17cddf5b61607740a3c19d3a5187119eeee"
+    },
+    {
+      "bytes": 2581,
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/manifest.json",
+      "sha256": "991b2fbb9212b8dd8f49686e3e5f2b510627e4c5403d529afd54b0b7ce48474e"
+    },
+    {
+      "bytes": 1888,
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/config.json",
+      "sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023"
+    },
+    {
+      "bytes": 5602871,
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/model.safetensors.index.json",
+      "sha256": "98efab455cf08dfbbbaaba6f570e1bf10bf927d2b4c3c453a59c2f6f0e3be92b"
+    },
+    {
+      "bytes": 22284,
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.json",
+      "sha256": "6cacae22067d225351b46d30b3b4335db18b8941e342ac24ab945d81ebef4800"
+    },
+    {
+      "bytes": 24578,
+      "path": "metadata/deepseek-v4-flash-0731/7872f01b1d1fe23eabc4c98b48bffcef5a386062/repository.receipt.json",
+      "sha256": "fb7d2406fccd6f326cef18df829457eb98ab2c61dd77a9a0436fd4a962b4bbbf"
+    },
+    {
+      "bytes": 2442,
+      "path": "$ATLAS_OUTPUT/m1_rejection_path.json",
+      "sha256": "5918fbefde183641a6560d92358fb3924fb2ae19e3f25f168e9cfdb983380848"
+    }
+  ],
+  "outputs": [
+    {
+      "bytes": 2442,
+      "kind": "actual-subprocess-rejection-record",
+      "path": "m1_rejection_path.json",
+      "sha256": "5918fbefde183641a6560d92358fb3924fb2ae19e3f25f168e9cfdb983380848"
+    },
+    {
+      "bytes": 367218,
+      "kind": "rasterized-exact-transcript",
+      "path": "m1-cli-inspect.png",
+      "sha256": "e79d875c8cc47772f67d100ecbe5a29f285b98be819758c00a78d7715e2fd991"
+    },
+    {
+      "bytes": 4819,
+      "kind": "accessible-svg",
+      "path": "m1-architecture.svg",
+      "sha256": "a030925950e553f9065d1eaf93e8417467d45c8b68be08e66f92407e3b9e5b27"
+    },
+    {
+      "bytes": 4159,
+      "kind": "accessible-svg",
+      "path": "m1-topology.svg",
+      "sha256": "8191c8a3ae2b044e87e4851deee004750b31dc5110075991b15162c96e23aadd"
+    },
+    {
+      "bytes": 3381,
+      "kind": "accessible-svg",
+      "path": "m1-expert-census.svg",
+      "sha256": "531071a7166b9798bb75ac986601ab973a3834467c4c983fae8bb5039b8138fb"
+    },
+    {
+      "bytes": 12446,
+      "kind": "accessible-svg",
+      "path": "m1-shard-inventory.svg",
+      "sha256": "f44be207fe1b1e914713a3f5117f721e25c9c87b50b6925c4a3c1c617f9e2f70"
+    },
+    {
+      "bytes": 2921,
+      "kind": "accessible-svg",
+      "path": "m1-byte-ledgers.svg",
+      "sha256": "8171f889a09c8d29a8ad416b5c26e33961ccad599abc418d165117c3b995e963"
+    },
+    {
+      "bytes": 3600,
+      "kind": "accessible-svg",
+      "path": "m1-parameter-classes.svg",
+      "sha256": "1e44f71de1dccb58b7832dc84009aa9a1b1a9704fb4205200cd9240bc547b707"
+    },
+    {
+      "bytes": 3873,
+      "kind": "accessible-svg",
+      "path": "m1-drift-boundary.svg",
+      "sha256": "3869e88126ee844d08cdf00bed7734025f2e89f926668c2b62514c66e38f71b6"
+    },
+    {
+      "bytes": 28395,
+      "kind": "four-frame-rejection-record",
+      "path": "m1-rejection-path.gif",
+      "sha256": "43cf7abb9fad70f6319fd1d701dde2821794edeee8d182d3ec7bb8987d2d1d96"
+    }
+  ],
+  "schema_version": 1,
+  "status": "generated-not-adopted",
+  "toolchain": {
+    "default_font": {
+      "family": "Aileron",
+      "loader": "PIL.ImageFont.load_default",
+      "size": 14,
+      "source": "embedded in the pinned Pillow wheel",
+      "style": "Regular"
+    },
+    "pillow": {
+      "install_policy": [
+        "--only-binary=:all:",
+        "--require-hashes"
+      ],
+      "version": "12.3.0",
+      "wheel_filename": "pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "wheel_sha256": "78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91"
+    },
+    "python": {
+      "implementation": "CPython",
+      "setup_python_action_sha": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "version": "3.12.3"
+    }
+  },
+  "truth_boundary": [
+    "all quantitative labels come from committed M1 evidence or the actual rejection record",
+    "configuration declarations are not shard-header or payload observations",
+    "API-reported parameter classes are not recomputed from shard headers",
+    "the 7,998,896-byte difference is unattributed and is not compression or proven overhead",
+    "capture attestation remains unverified and hostwide state remains unaudited",
+    "the full checkpoint is NOT DOWNLOADED / NOT RUN"
+  ]
+}

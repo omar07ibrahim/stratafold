@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1200 675" role="img" aria-labelledby="atlas-title atlas-description">
+<title id="atlas-title">API-reported parameter classes</title>
+<desc id="atlas-description">Five exact parameter-class counts on a log10 scale, with no pie or trend encoding.</desc>
+<rect x="0" y="0" width="1200" height="675" rx="0" fill="#0b1220"/>
+<text x="60" y="62" fill="#dbeafe" font-family="sans-serif" font-size="34" font-weight="700" text-anchor="start">API-reported parameter classes</text>
+<text x="60" y="94" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Bar height is log10(parameters); every bar carries its exact count.</text>
+<line x1="60" y1="114" x2="1140" y2="114" stroke="#152238" stroke-width="2"/>
+<rect x="90" y="258" width="130" height="287" rx="5" fill="#60a5fa"/>
+<text x="155" y="216" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="middle">1,483,567,488</text>
+<text x="155" y="241" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">log10 = 9.1713</text>
+<text x="155" y="578" fill="#34d399" font-family="sans-serif" font-size="20" font-weight="700" text-anchor="middle">BF16</text>
+<rect x="300" y="308" width="130" height="237" rx="5" fill="#60a5fa"/>
+<text x="365" y="266" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="middle">37,741,630</text>
+<text x="365" y="291" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">log10 = 7.5768</text>
+<text x="365" y="578" fill="#34d399" font-family="sans-serif" font-size="20" font-weight="700" text-anchor="middle">F32</text>
+<rect x="510" y="239" width="130" height="306" rx="5" fill="#60a5fa"/>
+<text x="575" y="197" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="middle">6,304,038,912</text>
+<text x="575" y="222" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">log10 = 9.7996</text>
+<text x="575" y="578" fill="#34d399" font-family="sans-serif" font-size="20" font-weight="700" text-anchor="middle">F8_E4M3</text>
+<rect x="720" y="346" width="130" height="199" rx="5" fill="#60a5fa"/>
+<text x="785" y="304" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="middle">2,327,040</text>
+<text x="785" y="329" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">log10 = 6.3668</text>
+<text x="785" y="578" fill="#34d399" font-family="sans-serif" font-size="20" font-weight="700" text-anchor="middle">I64</text>
+<rect x="930" y="187" width="130" height="358" rx="5" fill="#60a5fa"/>
+<text x="995" y="145" fill="#dbeafe" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="middle">296,352,743,424</text>
+<text x="995" y="170" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">log10 = 11.4718</text>
+<text x="995" y="578" fill="#34d399" font-family="sans-serif" font-size="20" font-weight="700" text-anchor="middle">I8</text>
+<line x1="60" y1="545" x2="1140" y2="545" stroke="#94a3b8" stroke-width="2"/>
+<text x="60" y="625" fill="#fbbf24" font-family="sans-serif" font-size="22" font-weight="700" text-anchor="start">Exact total: 304,180,418,494 API-reported parameters</text>
+<text x="1140" y="650" fill="#94a3b8" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="end">No pie or trend encoding · not recomputed from shard headers</text>
+</svg>

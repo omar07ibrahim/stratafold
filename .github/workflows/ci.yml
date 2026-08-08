@@ -140,7 +140,7 @@ jobs:
           font = ImageFont.load_default(size=14)
           assert font.getname() == ("Aileron", "Regular")
           PY
-      - name: Run exact visual contract tests
+      - name: Run exact visual contract and adoption tests
         run: make PYTHON=python visuals-m1-test
       - name: Render the atlas twice from committed sources
         run: |
@@ -198,12 +198,23 @@ jobs:
               "$RUNNER_TEMP/m1-atlas-first/$name" \
               "$RUNNER_TEMP/m1-atlas-second/$name"
           done
+      - name: Compare both replays with the adopted atlas
+        run: |
+          for directory in \
+            "$RUNNER_TEMP/m1-atlas-first" \
+            "$RUNNER_TEMP/m1-atlas-second"
+          do
+            make \
+              PYTHON=python \
+              M1_VISUAL_DIR="$directory" \
+              visuals-m1-verify-adopted
+          done
       - name: Require clean checkout after hosted rendering
         run: |
           git diff --check
           git diff --exit-code -- .
           test -z "$(git status --short --untracked-files=all)"
-      - name: Upload unadopted M1 visual atlas for review
+      - name: Upload reproducible M1 visual atlas replay
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: m1-visual-atlas-${{ github.run_id }}

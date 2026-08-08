@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1200 675" role="img" aria-labelledby="atlas-title atlas-description">
+<title id="atlas-title">Declared M1 topology</title>
+<desc id="atlas-description">Exact topology values reproduced from the committed configuration metadata.</desc>
+<rect x="0" y="0" width="1200" height="675" rx="0" fill="#0b1220"/>
+<text x="60" y="62" fill="#dbeafe" font-family="sans-serif" font-size="34" font-weight="700" text-anchor="start">Declared M1 topology</text>
+<text x="60" y="94" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Source-reproduced from config.json; declarations are not payload observations.</text>
+<line x1="60" y1="114" x2="1140" y2="114" stroke="#152238" stroke-width="2"/>
+<rect x="60" y="150" width="240" height="135" rx="12" fill="#152238"/>
+<text x="80" y="192" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Hidden layers</text>
+<text x="80" y="248" fill="#60a5fa" font-family="sans-serif" font-size="38" font-weight="700" text-anchor="start">43</text>
+<rect x="330" y="150" width="240" height="135" rx="12" fill="#152238"/>
+<text x="350" y="192" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Hidden size</text>
+<text x="350" y="248" fill="#60a5fa" font-family="sans-serif" font-size="38" font-weight="700" text-anchor="start">4,096</text>
+<rect x="600" y="150" width="240" height="135" rx="12" fill="#152238"/>
+<text x="620" y="192" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Routed experts / layer</text>
+<text x="620" y="248" fill="#60a5fa" font-family="sans-serif" font-size="38" font-weight="700" text-anchor="start">256</text>
+<rect x="870" y="150" width="240" height="135" rx="12" fill="#152238"/>
+<text x="890" y="192" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Shared experts / layer</text>
+<text x="890" y="248" fill="#60a5fa" font-family="sans-serif" font-size="38" font-weight="700" text-anchor="start">1</text>
+<rect x="60" y="320" width="240" height="135" rx="12" fill="#152238"/>
+<text x="80" y="362" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Experts selected / token</text>
+<text x="80" y="418" fill="#60a5fa" font-family="sans-serif" font-size="38" font-weight="700" text-anchor="start">6</text>
+<rect x="330" y="320" width="240" height="135" rx="12" fill="#152238"/>
+<text x="350" y="362" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Hash layers</text>
+<text x="350" y="418" fill="#60a5fa" font-family="sans-serif" font-size="38" font-weight="700" text-anchor="start">3</text>
+<rect x="600" y="320" width="240" height="135" rx="12" fill="#152238"/>
+<text x="620" y="362" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">Next-token-prediction layers</text>
+<text x="620" y="418" fill="#60a5fa" font-family="sans-serif" font-size="38" font-weight="700" text-anchor="start">1</text>
+<rect x="870" y="320" width="240" height="135" rx="12" fill="#152238"/>
+<text x="890" y="362" fill="#94a3b8" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">DSpark target layers</text>
+<text x="890" y="418" fill="#34d399" font-family="sans-serif" font-size="31" font-weight="700" text-anchor="start">40 · 41 · 42</text>
+<text x="60" y="535" fill="#dbeafe" font-family="sans-serif" font-size="21" font-weight="700" text-anchor="start">Representation declarations</text>
+<text x="60" y="570" fill="#fbbf24" font-family="sans-serif" font-size="21" font-weight="400" text-anchor="start">expert_dtype = fp4  ·  torch_dtype = bfloat16</text>
+<text x="60" y="606" fill="#dbeafe" font-family="sans-serif" font-size="19" font-weight="400" text-anchor="start">quant_method = fp8  ·  fmt = e4m3  ·  weight block = 128 × 128</text>
+<text x="60" y="640" fill="#94a3b8" font-family="sans-serif" font-size="16" font-weight="400" text-anchor="start">Evidence tag: source-reproduced</text>
+</svg>
