@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -71,11 +72,22 @@ class ClaimsPathTests(unittest.TestCase):
 
 
 class SecretPatternTests(unittest.TestCase):
-    def _errors_for(self, secret: str) -> list[str]:
+    def _errors_for(self, candidate: str) -> list[str]:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / "leak.txt").write_text(secret, encoding="utf-8")
-            return validate_repository(root)
+            path = root / "synthetic-candidate.txt"
+            descriptor = os.open(
+                path,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                0o600,
+            )
+            os.fchmod(descriptor, 0o600)
+            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                handle.write(candidate)
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            errors = validate_repository(root)
+            self.assertTrue(all(candidate not in error for error in errors), errors)
+            return errors
 
     def test_huggingface_token_shape_is_detected(self) -> None:
         errors = self._errors_for("hf_" + "A" * 32)

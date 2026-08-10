@@ -33,7 +33,8 @@ REQUIRED_PATHS = {
     "docs/adr/0001-clean-room.md",
 }
 BINARY_WEIGHT_SUFFIXES = {".safetensors", ".bin", ".pt", ".pth", ".ckpt", ".gguf", ".onnx"}
-SECRET_PATTERNS = {
+# Detection rules only: findings expose rule labels and paths, never matched values.
+CONTENT_GUARDS = {
     "private-key": re.compile(r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----"),
     "github-token": re.compile(r"\bgh[opsu]_[A-Za-z0-9]{20,}\b"),
     "github-fine-grained-token": re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
@@ -210,7 +211,7 @@ def validate_repository(
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        for label, pattern in SECRET_PATTERNS.items():
+        for label, pattern in CONTENT_GUARDS.items():
             if pattern.search(text):
                 errors.append(f"possible {label} in {relative}")
         if relative.name not in {"AGENTS.md", "MISSION.md"}:
